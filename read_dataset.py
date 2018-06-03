@@ -20,6 +20,5 @@ for lines in train_file:
 # for lines in dev_file:
 # 	dev_set.append(lines)
 
-for example in train_set:
+for example in train_set[:10]:
 	relevant_docs = doc_retrieval.getRelevantDocs(example['claim'])
-	break
