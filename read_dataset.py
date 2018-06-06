@@ -20,5 +20,19 @@ for lines in train_file:
 # for lines in dev_file:
 # 	dev_set.append(lines)
 
-for example in train_set[:10]:
+total = 0.0
+retrieved = 0.0
+
+for example in train_set[:5]:
 	relevant_docs = doc_retrieval.getRelevantDocs(example['claim'])
+	print relevant_docs
+# 	if example['label']=="REFUTES" or example['label']=="SUPPORTS":
+# 		for actual_evidence in example['evidence'][0]:
+# 			total+=1.0
+# 			if actual_evidence[2] in relevant_docs:
+# 				retrieved += 1.0
+# 				# print actual_evidence[2]
+
+# print total
+# print retrieved
+# print retrieved/total
