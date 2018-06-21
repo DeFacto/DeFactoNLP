@@ -7,9 +7,9 @@ import subprocess
 
 # global variable definition
 labelToString = {
-    0: "none",
-    1: 'entailment',
-    2: 'contradiction'}
+    0: "NOT ENOUGH INFO",
+    1: 'SUPPORTS',
+    2: 'REFUTES'}
 
 def createTestSet(claim, candidateEvidences):
     
