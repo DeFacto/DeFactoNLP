@@ -33,8 +33,6 @@ def getPredictions():
     for line in predsFile.readlines():
         rtePreds.append(json.loads(line))
     
-    #rtePreds= json.load(predsFile)
-    
     predsFile.close()
     
     # for each element returns a dictionary of the form: {"predictedLabel": A, "confidence": B}
@@ -77,9 +75,11 @@ def textual_entailment_evidence_retriever(claim, potential_evidence_sentences):
     return {"claim": claim, "label": labelToString[predictedLabel], "evidence": np.asarray(potential_evidence_sentences)[evidencesIndexes]}
 
 
+"""
 #### test #####
 
 claim= "Gil was born in Porto"
 candidateEvidences= ["Gil lives in Porto", "Gil was born in 1993 in Paris", "This document indicates that Gil was not born in Portugal"]
 
 print(textual_entailment_evidence_retriever(claim, candidateEvidences))
+"""
