@@ -13,8 +13,8 @@
             ]
         }
     },
-    "train_data_path": "/home/gilrocha/Documents/Programming/allenai/snli_data/snli_1.0_train.jsonl",
-    "validation_data_path": "/home/gilrocha/Documents/Programming/allenai/snli_data/snli_1.0_dev.jsonl",
+    "train_data_path": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/snli/snli_1.0_train.jsonl",
+    "validation_data_path": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/snli/snli_1.0_dev.jsonl",
     "model": {
         "type": "decomposable_attention",
         "text_field_embedder": {
@@ -86,11 +86,11 @@
                 "num_tokens"
             ]
         ],
-        "batch_size": 32
+        "batch_size": 64
     },
     "trainer": {
-        "num_epochs": 15,
-        "patience": 5,
+        "num_epochs": 140,
+        "patience": 20,
         "cuda_device": -1,
         "grad_clipping": 5.0,
         "validation_metric": "+accuracy",
