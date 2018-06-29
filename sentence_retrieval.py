@@ -14,6 +14,8 @@ def getRelevantSentences(relevant_docs, wiki_split_docs_dir):
 		entities.append(relevant_doc)
 		split_entities = split_entities + relevant_doc.split(" ")
 	for relevant_doc in relevant_docs:
+		if not os.path.isfile(wiki_split_docs_dir + "/" + relevant_doc + ".txt"):
+			continue
 		file = codecs.open(wiki_split_docs_dir + "/" + relevant_doc + ".txt","r","utf-8")
 		lines = file.readlines()
 		for i in range(len(lines)):
