@@ -1,3 +1,6 @@
 data/wiki-pages/
 data/wiki-pages.zip
 __pycache__
+temp.txt
+temp.tsv
+testSet_rte.jsonl

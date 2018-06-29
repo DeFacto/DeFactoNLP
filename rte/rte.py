@@ -57,22 +57,26 @@ def determinePredictedLabel(preds):
     
     if mostCommonPrediction == 0:
         return (0, [])
-    elif mostCommonPredictions == 1:
+    elif mostCommonPrediction == 1:
         return (1, supportPredictions)
     else:
         return (2, contradictionPredictions)
     
     
 
-def textual_entailment_evidence_retriever(claim, potential_evidence_sentences):
-    
+def textual_entailment_evidence_retriever(claim, evidence):
+
+    os.chdir("rte")
+    potential_evidence_sentences = []
+    for sentence in evidence:
+        potential_evidence_sentences.append(sentence['sentence'])
+
     createTestSet(claim, potential_evidence_sentences)
-    
     preds= getPredictions()
-    
     predictedLabel, evidencesIndexes = determinePredictedLabel(preds)
     
-    return {"claim": claim, "label": labelToString[predictedLabel], "evidence": np.asarray(potential_evidence_sentences)[evidencesIndexes]}
+    os.chdir("..")
+    return {"claim": claim, "label": labelToString[predictedLabel], "evidence": np.asarray(evidence)[evidencesIndexes]}
 
 
 """
