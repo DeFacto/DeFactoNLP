@@ -4,3 +4,4 @@ __pycache__
 temp.txt
 temp.tsv
 testSet_rte.jsonl
+fever-baselines/data

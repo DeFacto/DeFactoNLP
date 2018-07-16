@@ -10,6 +10,7 @@ for file in files:
 	file = jsonlines.open(wiki_folder + "/" + file)
 	for page in file:
 		page['id'] = page['id'].replace("/","-SLH-")
+		page['id'] = page['id'].encode('utf8').decode('utf8')
 		print(page['id'])
 		new_file = codecs.open(dest_dir + "/" + page['id'] + ".txt", "w+","utf-8")
 		lines = page['lines'].split("\n")

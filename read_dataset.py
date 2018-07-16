@@ -2,6 +2,12 @@ import jsonlines
 import doc_retrieval
 import sentence_retrieval
 import rte.rte as rte
+import utilities
+import spacy
+import os
+# from spacy.matcher import Matcher
+
+nlp = spacy.load('en_core_web_lg')
 
 train_file = "data/train.jsonl"
 test_file = "data/shared_task_dev_public.jsonl"
@@ -19,6 +25,12 @@ train_set = []
 test_set = []
 dev_set = []
 
+wiki_entities = os.listdir(wiki_split_docs_dir)
+for i in range(len(wiki_entities)):
+	wiki_entities[i] = wiki_entities[i].replace("-SLH-","/")
+	wiki_entities[i] = wiki_entities[i].replace("_"," ")
+	wiki_entities[i] = wiki_entities[i][:-4]
+
 # for lines in train_file:
 # 	train_set.append(lines)
 for lines in test_file:
@@ -29,11 +41,23 @@ for lines in test_file:
 total = 0.0
 retrieved = 0.0
 
+# # adding entities to gazetter
+# matcher = Matcher(nlp.vocab,100)
+# gazetter = "list_of_Wikipedia_files.txt"
+# gazetter = open(gazetter,"r").readlines()
+# for i in range(len(gazetter)):
+# 	gazetter[i] = gazetter[i][:-5]
+# 	gazetter[i] = gazetter[i].replace("-SLH-","/")
+# 	gazetter[i] = gazetter[i].replace("_"," ")
+# 	matcher.add(gazetter[i],utilities.on_match,nlp(gazetter[i]))
+
 with jsonlines.open(results_file, mode='w') as writer:
-	for example in test_set:
-		relevant_docs = doc_retrieval.getRelevantDocs(example['claim'])
+	for example in test_set[:5]:
+		relevant_docs,entities = doc_retrieval.getRelevantDocs(example['claim'],wiki_entities,"spaCy",nlp)
+		print(example['claim'])
+		print(entities)
 		print(relevant_docs)
-		relevant_sentences = sentence_retrieval.getRelevantSentences(relevant_docs,wiki_split_docs_dir)
+		relevant_sentences = sentence_retrieval.getRelevantSentences(relevant_docs,entities,wiki_split_docs_dir)
 		print(relevant_sentences)
 		result = rte.textual_entailment_evidence_retriever(example['claim'],relevant_sentences)
 		print(result)
