@@ -2,8 +2,9 @@ import os
 import jsonlines
 import nltk
 import codecs
+from spacy.matcher import PhraseMatcher
 
-def getNamedEntities(sentence):
+def getNamedEntitiesStanfordNER(sentence):
 	# print sentence
 	# print nltk.ne_chunk(nltk.pos_tag(nltk.word_tokenize(sentence)))
 	temp = codecs.open("temp.txt","w+","utf-8")

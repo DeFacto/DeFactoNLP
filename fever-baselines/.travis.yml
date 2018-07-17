@@ -1,0 +1,32 @@
+language: python
+sudo: required
+
+services:
+  - docker
+
+python:
+  - "3.6"
+
+git:
+  submodules: false
+
+stages:
+  - before_install
+  - install
+  - name: after_success
+    if: branch = master
+
+before_install:
+  - docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+install:
+  - docker build -t fever .
+  - docker tag fever $DOCKER_PUB_ORG/fever-baselines:build-$TRAVIS_BUILD_NUMBER
+  - docker push $DOCKER_PUB_ORG/fever-baselines:build-$TRAVIS_BUILD_NUMBER
+
+script:
+  - echo "Done"
+
+after_success:
+  - docker tag fever $DOCKER_PUB_ORG/fever-baselines:latest
+  - docker push $DOCKER_PUB_ORG/fever-baselines:latest

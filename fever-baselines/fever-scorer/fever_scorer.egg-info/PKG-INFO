@@ -1,0 +1,9 @@
+Metadata-Version: 1.2
+Name: fever-scorer
+Version: 1.1.1
+Summary: Fact Extraction and VERification scorer
+Home-page: UNKNOWN
+License: Type license() to see the full license text
+Description: readme
+Platform: UNKNOWN
+Requires-Python: >=3.6
