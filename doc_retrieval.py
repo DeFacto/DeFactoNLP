@@ -82,6 +82,9 @@ def preProcessDoc(doc):
 		# sentences are organized as follows:
 		#	SENTENCE_ID\tSENTENCE_TEXT\tNAMED_ENTITY1\tNAMED_ENTITY2
 		splittedSentence= line.split("\t")
-		linesList.append({"content": splittedSentence[1], "namedEntitiesList": splittedSentence[2:]})
+		if len(splittedSentence) >= 3:
+			linesList.append({"content": splittedSentence[1], "namedEntitiesList": splittedSentence[2:]})
+		else:
+			linesList.append({"content": splittedSentence[1], "namedEntitiesList": []})
 	
 	return {"id": doc["id"], "fileId": doc["fileId"],"text": doc["text"], "lines": linesList}
