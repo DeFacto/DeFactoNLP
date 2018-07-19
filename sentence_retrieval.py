@@ -27,3 +27,15 @@ def getRelevantSentences(relevant_docs, entities, wiki_split_docs_dir):
 			temp['sentence'] = lines[i]
 			relevant_sentences.append(temp)
 	return relevant_sentences
+
+
+def getSentence(wiki_doc_dir, doc_filename, sentence_id):
+	
+	doc = codecs.open(wiki_doc_dir + "/" + doc_filename + ".txt","r","utf-8")
+	
+	doc_splitted_lines= doc["lines"].split("\n")
+	
+	# assuming that the sentence id corresponds to the order of the sentences in the doc
+	# sentences are organized as follows:
+	#	SENTENCE_ID\tSENTENCE_TEXT\tNAMED_ENTITY1\tNAMED_ENTITY2
+	return doc_splitted_lines[sentence_id].split("\t")[1]

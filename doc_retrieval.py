@@ -43,3 +43,45 @@ def getRelevantDocs(claim,wiki_entities,ner_module="spaCy",nlp=None): #,matcher=
 		print("Error: Incorrect Document Retrieval Specifications")
 		return
 	return getClosestDocs(wiki_entities,entities)
+
+def getDocContent(wiki_folder, doc_id):
+	
+	for currentFile in os.listdir(wiki_folder): 
+		fileContent= jsonlines.open(wiki_folder + "/" + currentFile)
+		
+		for doc in fileContent:
+			
+			if doc["id"] == doc_id:
+				# add file id where the doc was found. This can be useful for next steps of the process to get document content without requiring an exhaustive search on all the files.
+				doc["fileId"] = currentFile
+				return doc
+			
+	
+	return None
+
+def getDocContentFromFile(wiki_folder, doc_filename, doc_id):
+	
+	fileContent= jsonlines.open(wiki_folder + "/" + doc_filename)
+	
+	for doc in fileContent:
+		
+		if doc["id"] == doc_id:
+			doc["fileId"] = doc_filename
+			return doc
+		
+	return None
+
+def preProcessDoc(doc):
+	
+	# process "lines"
+	doc_splitted_lines= doc["lines"].split("\n")
+	
+	linesList= []
+	
+	for line in doc_splitted_lines:
+		# sentences are organized as follows:
+		#	SENTENCE_ID\tSENTENCE_TEXT\tNAMED_ENTITY1\tNAMED_ENTITY2
+		splittedSentence= line.split("\t")
+		linesList.append({"content": splittedSentence[1], "namedEntitiesList": splittedSentence[2:]})
+	
+	return {"id": doc["id"], "fileId": doc["fileId"],"text": doc["text"], "lines": linesList}
