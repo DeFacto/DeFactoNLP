@@ -20,7 +20,7 @@ label_fever_to_snli = {
 	"REFUTES": 'contradiction',
 	"NOT ENOUGH INFO": 'neutral'}
 
-#TODO: check these paths
+
 feverData_dir= "data/"
 feverData_snliFormat_dir= "data/snli_format/"
 train_filename = "train"
