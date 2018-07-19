@@ -61,16 +61,16 @@ def createDatasetRTEStyle(datasetFilename):
 				
 				for evidence in evidenceSet:
 					# evidence is a list of the form: ["annotationId", "evidenceId", "docId", "sentenceId"]
-					currentDocContent= doc_retrieval.getDocContent(wiki_dir, evidence[2])
+					currentDocContent= doc_retrieval.getDocContentFromFile(wiki_dir, evidence[2].replace("/","-SLH-")..encode('utf8').decode('utf8'))  #doc_retrieval.getDocContent(wiki_dir, evidence[2])
 					if currentDocContent is None:
 						print("[ERROR] Document with id: ")
 						print(evidence[2])
 						print(" not found in the followinng directory: " + wiki_dir)
 						print("")
 					else:
-						currentDocContent= doc_retrieval.preProcessDoc(currentDocContent)
+						#currentDocContent= doc_retrieval.preProcessDoc(currentDocContent)
 						evidenceContent= currentDocContent["lines"][evidence[3]]["content"]
-						evidenceSetList.append({"docId": currentDocContent["id"], "fileId": currentDocContent["fileId"], "evidenceId": evidence[3], "evidenceContent": evidenceContent})
+						evidenceSetList.append({"docId": currentDocContent["id"], "evidenceId": evidence[3], "evidenceContent": evidenceContent})
 					
 				
 				if len(evidenceSetList) > 0:
@@ -92,7 +92,7 @@ def createDatasetRTEStyle(datasetFilename):
 					evidenceRepetition= [0 for evidenceContentAlreadyAdded in evidenceContentAdded if evidenceContentAlreadyAdded == finalEvidenceContent]
 					
 					if len(evidenceRepetition) == 0:
-						json.dump({"sentence1": finalEvidenceContent, "sentence2": line["claim"], "gold_label": label_fever_to_snli[line["label"]]}, dev_set_snliFormat)
+						json.dump({"sentence1": finalEvidenceContent, "sentence2": line["claim"], "gold_label": label_fever_to_snli[line["label"]], "docId": evidenceSetList[0]["docId"]}, dev_set_snliFormat)
 						dev_set_snliFormat.write("\n")
 						evidenceContentAdded.append(finalEvidenceContent)
 						
@@ -127,19 +127,17 @@ def createDatasetRTEStyle(datasetFilename):
 						sentenceIds.append(noneExample["evidenceId"])
 				
 				
-				currentDocContent= doc_retrieval.getDocContentFromFile(wiki_dir, positiveExample["fileId"], positiveExample["docId"])
+				currentDocContent= doc_retrieval.getDocContentFromFile(wiki_dir, positiveExample["docId"].replace("/","-SLH-")..encode('utf8').decode('utf8')) #doc_retrieval.getDocContentFromFile(wiki_dir, positiveExample["fileId"], positiveExample["docId"])
 				
 				possibleSentenceIndexes= []
 				
 				if currentDocContent is None:
 					print("[ERROR] Document with id= ")
 					print(positiveExample["docId"])
-					print(" not found in the followinng file: ")
-					print(wiki_dir + "/" )
-					print(positiveExample["fileId"])
+					print(" not found!")
 					print("")
 				else:
-					currentDocContent= doc_retrieval.preProcessDoc(currentDocContent)
+					#currentDocContent= doc_retrieval.preProcessDoc(currentDocContent)
 					possibleSentenceIndexes= list(set(sentenceIds).symmetric_difference(range(len(currentDocContent["lines"]))))
 				
 				
@@ -155,7 +153,7 @@ def createDatasetRTEStyle(datasetFilename):
 					
 					#print("claim: " + line["claim"] + " -> evidence id: " + str(currentDocContent["lines"][possibleSentenceIndexes[0]]["evidenceId"]) + "; content: " + currentDocContent["lines"][possibleSentenceIndexes[0]]["content"] + "; docId: " + str(currentDocContent["lines"][possibleSentenceIndexes[0]]["docId"]) + "; fileId: " + str(currentDocContent["lines"][possibleSentenceIndexes[0]]["fileId"]))
 					if foundValidEvidence:
-						json.dump({"sentence1": currentDocContent["lines"][possibleSentenceIndexes[threshold]]["content"], "sentence2": line["claim"], "gold_label": "neutral"}, dev_set_snliFormat)
+						json.dump({"sentence1": currentDocContent["lines"][possibleSentenceIndexes[threshold]]["content"], "sentence2": line["claim"], "gold_label": "neutral", "docId": currentDocContent["id"]}, dev_set_snliFormat)
 						dev_set_snliFormat.write("\n")
 						noneExamplesAdded.append({"evidenceId": possibleSentenceIndexes[threshold], "docId": currentDocContent["id"]})
 				

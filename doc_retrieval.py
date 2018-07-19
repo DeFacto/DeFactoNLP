@@ -59,6 +59,7 @@ def getDocContent(wiki_folder, doc_id):
 	
 	return None
 
+"""
 def getDocContentFromFile(wiki_folder, doc_filename, doc_id):
 	
 	fileContent= jsonlines.open(wiki_folder + "/" + doc_filename)
@@ -70,6 +71,15 @@ def getDocContentFromFile(wiki_folder, doc_filename, doc_id):
 			return doc
 		
 	return None
+"""
+
+def getDocContentFromFile(wiki_folder, doc_filename):
+	
+	file= codecs.open(wiki_folder + "/" + doc_filename + ".json")
+	fileContent= json.load(file)
+	
+	return fileContent
+
 
 def preProcessDoc(doc):
 	
