@@ -63,7 +63,10 @@ def createDatasetRTEStyle(datasetFilename):
 					# evidence is a list of the form: ["annotationId", "evidenceId", "docId", "sentenceId"]
 					currentDocContent= doc_retrieval.getDocContent(wiki_dir, evidence[2])
 					if currentDocContent is None:
-						print("[ERROR] Document with id= " + str(evidence[2]) + " not found in the followinng directory: " + str(wiki_dir))
+						print("[ERROR] Document with id: ")
+						print(evidence[2])
+						print(" not found in the followinng directory: " + wiki_dir)
+						print("")
 					else:
 						currentDocContent= doc_retrieval.preProcessDoc(currentDocContent)
 						evidenceContent= currentDocContent["lines"][evidence[3]]["content"]
@@ -101,6 +104,8 @@ def createDatasetRTEStyle(datasetFilename):
 			
 			# current version: adds the same number of examples as entailment/refutes previously added. Retrieve randomly one sentence from the same doc (different from the ones previously added, of course) as a negative example
 			
+			noneExamplesAdded= []
+			
 			for evidenceSetIndex in range(len(evidencesList)):
 				
 				# simplification: in case of multiple evidences, determine the pair doc/sentence only based on the first one in the list
@@ -110,10 +115,16 @@ def createDatasetRTEStyle(datasetFilename):
 				sentenceIds= []
 				sentenceIds.append(positiveExample["evidenceId"])
 				
+				# check all the positive (supports or contradictions) previously added -> goal: avoid a None example with exactly the same content as a previously added positive example
 				for evidenceSetIndexAux in range(len(evidencesList)):
 					for evidence in evidencesList[evidenceSetIndexAux]:
 						if (not (evidenceSetIndexAux == evidenceSetIndex)) and (evidence["docId"] == positiveExample["docId"]):
 							sentenceIds.append(evidence["evidenceId"])
+				
+				# add sentence idxs from already added none examples in the same doc
+				for noneExample in noneExamplesAdded:
+					if noneExample["docId"] == positiveExample["docId"]:
+						sentenceIds.append(noneExample["evidenceId"])
 				
 				
 				currentDocContent= doc_retrieval.getDocContentFromFile(wiki_dir, positiveExample["fileId"], positiveExample["docId"])
@@ -121,7 +132,12 @@ def createDatasetRTEStyle(datasetFilename):
 				possibleSentenceIndexes= []
 				
 				if currentDocContent is None:
-					print("[ERROR] Document with id= " + str(positiveExample["docId"]) + " not found in the followinng file: " + str(wiki_dir) + "/" + str(positiveExample["fileId"]))
+					print("[ERROR] Document with id= ")
+					print(positiveExample["docId"])
+					print(" not found in the followinng file: ")
+					print(wiki_dir + "/" )
+					print(positiveExample["fileId"])
+					print("")
 				else:
 					currentDocContent= doc_retrieval.preProcessDoc(currentDocContent)
 					possibleSentenceIndexes= list(set(sentenceIds).symmetric_difference(range(len(currentDocContent["lines"]))))
@@ -131,7 +147,7 @@ def createDatasetRTEStyle(datasetFilename):
 					threshold= 0
 					foundValidEvidence= False
 					for possibleSentenceIndex in possibleSentenceIndexes:
-						if len(currentDocContent["lines"][possibleSentenceIndexes[0]]["content"]) == 0:
+						if len(currentDocContent["lines"][possibleSentenceIndex]["content"]) == 0:
 							threshold= threshold + 1
 						else:
 							foundValidEvidence= True
@@ -141,6 +157,7 @@ def createDatasetRTEStyle(datasetFilename):
 					if foundValidEvidence:
 						json.dump({"sentence1": currentDocContent["lines"][possibleSentenceIndexes[threshold]]["content"], "sentence2": line["claim"], "gold_label": "neutral"}, dev_set_snliFormat)
 						dev_set_snliFormat.write("\n")
+						noneExamplesAdded.append({"evidenceId": possibleSentenceIndexes[threshold], "docId": currentDocContent["id"]})
 				
 			
 			
@@ -154,6 +171,7 @@ def createDatasetRTEStyle(datasetFilename):
 print("Starting dev set")
 print(datetime.datetime.now())
 createDatasetRTEStyle(dev_filename)
+
 
 print("Starting train set")
 print(datetime.datetime.now())
