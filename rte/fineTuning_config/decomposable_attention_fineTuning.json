@@ -11,8 +11,8 @@
       "end_tokens": ["@@NULL@@"]
     }
   },
-  "train_data_path": "../fever_data/train_fever_snliFormat.jsonl",
-  "validation_data_path": "../fever_data/dev_fever_snliFormat.jsonl",
+  "train_data_path": "fever_data/train_fever_snliFormat.jsonl",
+  "validation_data_path": ".fever_data/dev_fever_snliFormat.jsonl",
   "iterator": {
     "type": "bucket",
     "sorting_keys": [["premise", "num_tokens"], ["hypothesis", "num_tokens"]],
