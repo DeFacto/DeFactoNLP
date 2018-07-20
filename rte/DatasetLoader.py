@@ -35,7 +35,7 @@ test_set = []
 dev_set = []
 
 
-def createDatasetRTEStyle(datasetFilename):
+def createDatasetRTEStyle(datasetFilename, testSetCreation= False):
 	
 	# Dev set 
 	print("Processing "+ datasetFilename + "data ...\n")
@@ -98,7 +98,10 @@ def createDatasetRTEStyle(datasetFilename):
 					
 					if len(evidenceRepetition) == 0:
 						
-						json.dump({"sentence1": finalEvidenceContent, "sentence2": line["claim"], "gold_label": label_fever_to_snli[line["label"]], "docId": finalEvidenceDocIds}, dev_set_snliFormat)
+						if testSetCreation:
+							json.dump({"premise": finalEvidenceContent, "hypothesis": line["claim"], "gold_label": label_fever_to_snli[line["label"]], "docId": finalEvidenceDocIds}, dev_set_snliFormat)
+						else:
+							json.dump({"sentence1": finalEvidenceContent, "sentence2": line["claim"], "gold_label": label_fever_to_snli[line["label"]], "docId": finalEvidenceDocIds}, dev_set_snliFormat)
 						dev_set_snliFormat.write("\n")
 						evidenceContentAdded.append(finalEvidenceContent)
 						
@@ -160,7 +163,10 @@ def createDatasetRTEStyle(datasetFilename):
 					
 					#print("claim: " + line["claim"] + " -> evidence id: " + str(currentDocContent["lines"][possibleSentenceIndexes[0]]["evidenceId"]) + "; content: " + currentDocContent["lines"][possibleSentenceIndexes[0]]["content"] + "; docId: " + str(currentDocContent["lines"][possibleSentenceIndexes[0]]["docId"]) + "; fileId: " + str(currentDocContent["lines"][possibleSentenceIndexes[0]]["fileId"]))
 					if foundValidEvidence:
-						json.dump({"sentence1": currentDocContent["lines"][possibleSentenceIndexes[threshold]]["content"], "sentence2": line["claim"], "gold_label": "neutral", "docId": positiveExample["docId"]}, dev_set_snliFormat)
+						if testSetCreation:
+							json.dump({"premise": currentDocContent["lines"][possibleSentenceIndexes[threshold]]["content"], "hypothesis": line["claim"], "gold_label": "neutral", "docId": positiveExample["docId"]}, dev_set_snliFormat)
+						else:
+							json.dump({"sentence1": currentDocContent["lines"][possibleSentenceIndexes[threshold]]["content"], "sentence2": line["claim"], "gold_label": "neutral", "docId": positiveExample["docId"]}, dev_set_snliFormat)
 						dev_set_snliFormat.write("\n")
 						noneExamplesAdded.append({"evidenceId": possibleSentenceIndexes[threshold], "docId": positiveExample["docId"]})
 				
@@ -186,5 +192,5 @@ createDatasetRTEStyle(train_filename)
 
 print("Starting test set")
 print(datetime.datetime.now())
-createDatasetRTEStyle(test_filename)
+createDatasetRTEStyle(test_filename, testSetCreation= True)
 """
