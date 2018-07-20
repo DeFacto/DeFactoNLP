@@ -1,5 +1,6 @@
 import os
 import jsonlines
+import json
 import nltk
 import codecs
 import utilities
@@ -75,10 +76,15 @@ def getDocContentFromFile(wiki_folder, doc_filename, doc_id):
 
 def getDocContentFromFile(wiki_folder, doc_filename):
 	
-	file= codecs.open(wiki_folder + "/" + doc_filename + ".json")
-	fileContent= json.load(file)
-	
-	return fileContent
+	try:
+		file= codecs.open(wiki_folder + "/" + doc_filename + ".json")
+		fileContent= json.load(file)
+		return fileContent
+	except:
+		print("Could not find or open file: ")
+		print(doc_filename)
+		print("")
+		return None
 
 
 def preProcessDoc(doc):

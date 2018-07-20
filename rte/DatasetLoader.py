@@ -27,7 +27,7 @@ train_filename = "train"
 test_filename = "test"
 dev_filename = "dev"
 
-wiki_dir = 'data/wiki-pages/wiki-pages'
+wiki_dir = "/home/gilrocha/Documents/Programming/FeverChallenge/repo/data/wiki-pages/wiki-pages-split" #'data/wiki-pages/wiki-pages'
 
 
 train_set = []
@@ -61,7 +61,9 @@ def createDatasetRTEStyle(datasetFilename):
 				
 				for evidence in evidenceSet:
 					# evidence is a list of the form: ["annotationId", "evidenceId", "docId", "sentenceId"]
-					currentDocContent= doc_retrieval.getDocContentFromFile(wiki_dir, evidence[2].replace("/","-SLH-")..encode('utf8').decode('utf8'))  #doc_retrieval.getDocContent(wiki_dir, evidence[2])
+					docIdEncoded= evidence[2].replace("/","-SLH-")
+					docIdEncoded= docIdEncoded.encode('utf8').decode('utf8')
+					currentDocContent= doc_retrieval.getDocContentFromFile(wiki_dir, docIdEncoded)  #doc_retrieval.getDocContent(wiki_dir, evidence[2])
 					if currentDocContent is None:
 						print("[ERROR] Document with id: ")
 						print(evidence[2])
@@ -70,7 +72,7 @@ def createDatasetRTEStyle(datasetFilename):
 					else:
 						#currentDocContent= doc_retrieval.preProcessDoc(currentDocContent)
 						evidenceContent= currentDocContent["lines"][evidence[3]]["content"]
-						evidenceSetList.append({"docId": currentDocContent["id"], "evidenceId": evidence[3], "evidenceContent": evidenceContent})
+						evidenceSetList.append({"docId": evidence[2], "evidenceId": evidence[3], "evidenceContent": evidenceContent})
 					
 				
 				if len(evidenceSetList) > 0:
@@ -89,10 +91,14 @@ def createDatasetRTEStyle(datasetFilename):
 					
 					finalEvidenceContent= " ".join([evidence["evidenceContent"] for evidence in evidenceSetList])
 					
+					#NOTE: the "docId" field corresponds to the ids of the evidences used to support/contradict the claim separated by ";" (keeping the order of the evidences).
+					finalEvidenceDocIds= ";".join([evidence["docId"] for evidence in evidenceSetList])
+					
 					evidenceRepetition= [0 for evidenceContentAlreadyAdded in evidenceContentAdded if evidenceContentAlreadyAdded == finalEvidenceContent]
 					
 					if len(evidenceRepetition) == 0:
-						json.dump({"sentence1": finalEvidenceContent, "sentence2": line["claim"], "gold_label": label_fever_to_snli[line["label"]], "docId": evidenceSetList[0]["docId"]}, dev_set_snliFormat)
+						
+						json.dump({"sentence1": finalEvidenceContent, "sentence2": line["claim"], "gold_label": label_fever_to_snli[line["label"]], "docId": finalEvidenceDocIds}, dev_set_snliFormat)
 						dev_set_snliFormat.write("\n")
 						evidenceContentAdded.append(finalEvidenceContent)
 						
@@ -126,8 +132,9 @@ def createDatasetRTEStyle(datasetFilename):
 					if noneExample["docId"] == positiveExample["docId"]:
 						sentenceIds.append(noneExample["evidenceId"])
 				
-				
-				currentDocContent= doc_retrieval.getDocContentFromFile(wiki_dir, positiveExample["docId"].replace("/","-SLH-")..encode('utf8').decode('utf8')) #doc_retrieval.getDocContentFromFile(wiki_dir, positiveExample["fileId"], positiveExample["docId"])
+				docIdEncoded= positiveExample["docId"].replace("/","-SLH-")
+				docIdEncoded= docIdEncoded.encode('utf8').decode('utf8')
+				currentDocContent= doc_retrieval.getDocContentFromFile(wiki_dir, docIdEncoded) #doc_retrieval.getDocContentFromFile(wiki_dir, positiveExample["fileId"], positiveExample["docId"])
 				
 				possibleSentenceIndexes= []
 				
@@ -153,9 +160,9 @@ def createDatasetRTEStyle(datasetFilename):
 					
 					#print("claim: " + line["claim"] + " -> evidence id: " + str(currentDocContent["lines"][possibleSentenceIndexes[0]]["evidenceId"]) + "; content: " + currentDocContent["lines"][possibleSentenceIndexes[0]]["content"] + "; docId: " + str(currentDocContent["lines"][possibleSentenceIndexes[0]]["docId"]) + "; fileId: " + str(currentDocContent["lines"][possibleSentenceIndexes[0]]["fileId"]))
 					if foundValidEvidence:
-						json.dump({"sentence1": currentDocContent["lines"][possibleSentenceIndexes[threshold]]["content"], "sentence2": line["claim"], "gold_label": "neutral", "docId": currentDocContent["id"]}, dev_set_snliFormat)
+						json.dump({"sentence1": currentDocContent["lines"][possibleSentenceIndexes[threshold]]["content"], "sentence2": line["claim"], "gold_label": "neutral", "docId": positiveExample["docId"]}, dev_set_snliFormat)
 						dev_set_snliFormat.write("\n")
-						noneExamplesAdded.append({"evidenceId": possibleSentenceIndexes[threshold], "docId": currentDocContent["id"]})
+						noneExamplesAdded.append({"evidenceId": possibleSentenceIndexes[threshold], "docId": positiveExample["docId"]})
 				
 			
 			
@@ -170,6 +177,8 @@ print("Starting dev set")
 print(datetime.datetime.now())
 createDatasetRTEStyle(dev_filename)
 
+print("Created dev data successfully!")
+print(datetime.datetime.now())
 
 print("Starting train set")
 print(datetime.datetime.now())

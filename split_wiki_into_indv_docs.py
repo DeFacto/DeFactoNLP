@@ -8,6 +8,7 @@ wiki_folder = 'data/wiki-pages/wiki-pages'
 dest_dir = "data/wiki-pages/wiki-pages-split"
 files = os.listdir(wiki_folder)
 
+
 for file in files:
 	fileContent = jsonlines.open(wiki_folder + "/" + file)
 	
@@ -60,7 +61,9 @@ for file in files:
 		else:
 			print("[WARNING] Article " + page['id'] + " is empty!")
 			emptyPagesCounter = emptyPagesCounter + 1
+			
 	
 	print("Parsed successfully")
 	print(datetime.datetime.now())
 	print("number of empty articles= " + str(emptyPagesCounter))
+
