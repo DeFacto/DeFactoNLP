@@ -1,4 +1,5 @@
 import jsonlines
+import json
 import doc_retrieval
 import sentence_retrieval
 import rte.rte as rte
@@ -41,8 +42,14 @@ with jsonlines.open(results_file, mode='w') as writer:
 		for i in range(len(example['predicted_sentences'])):
 			relevant_doc = ud.normalize('NFC',example['predicted_sentences'][i][0])
 			relevant_doc = relevant_doc.replace("/","-SLH-")
-			file = codecs.open(wiki_split_docs_dir + "/" + relevant_doc + ".txt","r","utf-8")
-			lines = file.readlines()
+			file = codecs.open(wiki_split_docs_dir + "/" + relevant_doc + ".json","r","utf-8")
+			file = json.load(file)
+			full_lines = file["lines"]
+			lines = []
+			for line in full_lines:
+				lines.append(line['content'])
+			# file = codecs.open(wiki_split_docs_dir + "/" + relevant_doc + ".txt","r","utf-8")
+			# lines = file.readlines()
 			lines[example['predicted_sentences'][i][1]-1] = lines[example['predicted_sentences'][i][1]-1].strip()
 			lines[example['predicted_sentences'][i][1]-1] = lines[example['predicted_sentences'][i][1]-1].replace("-LRB-"," ( ")
 			lines[example['predicted_sentences'][i][1]-1] = lines[example['predicted_sentences'][i][1]-1].replace("-RRB-"," ) ")
@@ -53,6 +60,7 @@ with jsonlines.open(results_file, mode='w') as writer:
 			temp['line_num'] = example['predicted_sentences'][i][1]
 			temp['sentence'] = lines[example['predicted_sentences'][i][1]-1]
 			relevant_sentences.append(temp)
+		# print(relevant_sentences)
 		relevant_docs = relevant_docs + list(example['predicted_pages'])
 		relevant_docs = list(set(relevant_docs))
 		result = rte.textual_entailment_evidence_retriever(example['claim'],relevant_sentences)

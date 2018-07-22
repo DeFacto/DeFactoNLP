@@ -1,4 +1,5 @@
 import os
+import json
 import jsonlines
 import nltk
 import codecs
@@ -10,8 +11,14 @@ def getRelevantSentences(relevant_docs, entities, wiki_split_docs_dir):
 	for ent in entities:
 		split_entities = split_entities + ent.split(" ")
 	for relevant_doc in relevant_docs:
-		file = codecs.open(wiki_split_docs_dir + "/" + relevant_doc + ".txt","r","utf-8")
-		lines = file.readlines()
+		file = codecs.open(wiki_split_docs_dir + "/" + relevant_doc + ".json","r","utf-8")
+		file = json.load(file)
+		full_lines = file["lines"]
+		lines = []
+		for line in full_lines:
+			lines.append(line['content'])
+		# file = codecs.open(wiki_split_docs_dir + "/" + relevant_doc + ".txt","r","utf-8")
+		# lines = file.readlines()
 		for i in range(len(lines)):
 			lines[i] = lines[i].strip()
 			lines[i] = lines[i].replace("-LRB-"," ( ")
