@@ -26,7 +26,7 @@ def getPredictions():
     # call allennlp predictions shell script
     subprocess.call(['./allennlp_predictions.sh'])
     
-    predsFile= codecs.open("./predictions_rte.json", mode= "r", encoding= "utf-8")
+    predsFile= codecs.open("./predictions_rte_individual.json", mode= "r", encoding= "utf-8")
     
     rtePreds= []
     
