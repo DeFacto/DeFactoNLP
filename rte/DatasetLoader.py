@@ -5,9 +5,13 @@ import json
 import numpy as np
 import jsonlines
 import datetime
+from numpy import random
+
 
 import doc_retrieval
 import sentence_retrieval
+
+random.seed(12345)
 
 # global variable definition
 labelToString = {
@@ -27,7 +31,7 @@ train_filename = "train"
 test_filename = "test"
 dev_filename = "dev"
 
-wiki_dir = "/home/gilrocha/Documents/Programming/FeverChallenge/repo/data/wiki-pages/wiki-pages-split" #'data/wiki-pages/wiki-pages'
+wiki_dir = 'data/wiki-pages/wiki-pages'
 
 
 train_set = []
@@ -178,6 +182,60 @@ def createDatasetRTEStyle(datasetFilename, testSetCreation= False):
 	dev_file.close()
 	
 
+def randomUndersample():
+	
+	
+	train_file = jsonlines.open(feverData_snliFormat_dir + "/" + train_filename + "_fever_snliFormat.jsonl")
+	
+	train_file_randomUndersample= codecs.open(feverData_snliFormat_dir + "/" + train_filename + "_fever_randomUndersample_snliFormat.jsonl", mode= "w")
+	
+	entailExamples= []
+	contradictionExamples= []
+	noneExamples= []
+	
+	for line in train_file:
+		
+		if line["gold_label"] == "entailment":
+			entailExamples.append(line)
+		elif line["gold_label"] == "contradiction":
+			contradictionExamples.append(line)
+		else:
+			noneExamples.append(line)
+		
+	
+	labelMinExamples= min(len(entailExamples), len(contradictionExamples), len(noneExamples))
+	
+	print(len(entailExamples))
+	print(len(contradictionExamples))
+	print(len(noneExamples))
+	
+	print("")
+	
+	random.shuffle(entailExamples)
+	entailExamples= entailExamples[:labelMinExamples]
+	
+	random.shuffle(contradictionExamples)
+	contradictionExamples= contradictionExamples[:labelMinExamples]
+	
+	random.shuffle(noneExamples)
+	noneExamples= noneExamples[:labelMinExamples]
+	
+	print(len(entailExamples))
+	print(len(contradictionExamples))
+	print(len(noneExamples))
+	
+	dataset= entailExamples + contradictionExamples + noneExamples
+	random.shuffle(dataset)
+	
+	print(len(dataset))
+	
+	for elem in dataset:
+		json.dump(elem, train_file_randomUndersample)
+		train_file_randomUndersample.write("\n")
+	
+	train_file_randomUndersample.close()
+	train_file.close()
+
 """
 print("Starting dev set")
 print(datetime.datetime.now())
@@ -194,3 +252,5 @@ print("Starting test set")
 print(datetime.datetime.now())
 createDatasetRTEStyle(test_filename, testSetCreation= True)
 """
+
+#randomUndersample()
