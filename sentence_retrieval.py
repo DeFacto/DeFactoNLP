@@ -30,7 +30,7 @@ def getRelevantSentences(relevant_docs, entities, wiki_split_docs_dir):
 			# if len(intersection) > 0:
 			temp = {}
 			temp['id'] = relevant_doc
-			temp['line_num'] = i+1
+			temp['line_num'] = i
 			temp['sentence'] = lines[i]
 			relevant_sentences.append(temp)
 	return relevant_sentences

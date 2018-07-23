@@ -52,15 +52,15 @@ with jsonlines.open(results_file, mode='w') as writer:
 				lines.append(line['content'])
 			# file = codecs.open(wiki_split_docs_dir + "/" + relevant_doc + ".txt","r","utf-8")
 			# lines = file.readlines()
-			lines[example['predicted_sentences'][i][1]-1] = lines[example['predicted_sentences'][i][1]-1].strip()
-			lines[example['predicted_sentences'][i][1]-1] = lines[example['predicted_sentences'][i][1]-1].replace("-LRB-"," ( ")
-			lines[example['predicted_sentences'][i][1]-1] = lines[example['predicted_sentences'][i][1]-1].replace("-RRB-"," ) ")
-			if lines[example['predicted_sentences'][i][1]-1] == "":
+			lines[example['predicted_sentences'][i][1]] = lines[example['predicted_sentences'][i][1]].strip()
+			lines[example['predicted_sentences'][i][1]] = lines[example['predicted_sentences'][i][1]].replace("-LRB-"," ( ")
+			lines[example['predicted_sentences'][i][1]] = lines[example['predicted_sentences'][i][1]].replace("-RRB-"," ) ")
+			if lines[example['predicted_sentences'][i][1]] == "":
 				continue
 			temp = {}
 			temp['id'] = relevant_doc
 			temp['line_num'] = example['predicted_sentences'][i][1]
-			temp['sentence'] = lines[example['predicted_sentences'][i][1]-1]
+			temp['sentence'] = lines[example['predicted_sentences'][i][1]]
 			relevant_sentences.append(temp)
 		# print(relevant_sentences)
 		relevant_docs = relevant_docs + list(example['predicted_pages'])
