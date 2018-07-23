@@ -14,7 +14,7 @@
   
   "train_data_path": "fever_data/train_fever_randomUndersample_snliFormat.jsonl",
   
-  "validation_data_path": "fever_data/dev_fever_snliFormat.jsonl",
+  "validation_data_path": "fever_data/shared_task_dev_snliFormat.jsonl",
   
   "model": {
     "type": "decomposable_attention",
