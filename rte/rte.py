@@ -22,7 +22,7 @@ def createTestSet(claim, candidateEvidences):
     
     testSetFile.close()
 
-def getPredictions(evidence,claim_id):
+def getPredictions(claim,evidence,claim_id):
     
     # call allennlp predictions shell script
     subprocess.call(['./allennlp_predictions.sh'])
@@ -35,6 +35,7 @@ def getPredictions(evidence,claim_id):
     predsContent = predsFile.readlines()
     for i in range(len(predsContent)):
         rtePreds.append(json.loads(predsContent[i]))
+        rtePreds[i]['claim'] = claim
         rtePreds[i]['premise_source_doc_id'] = evidence[i]['id']
         rtePreds[i]['premise_source_doc_line_num'] = evidence[i]['line_num']
         rtePreds[i]['premise_source_doc_sentence'] = evidence[i]['sentence']
@@ -80,7 +81,7 @@ def textual_entailment_evidence_retriever(claim, evidence, claim_id):
         potential_evidence_sentences.append(sentence['sentence'])
 
     createTestSet(claim, potential_evidence_sentences)
-    preds= getPredictions(evidence, claim_id)
+    preds= getPredictions(claim, evidence, claim_id)
     predictedLabel, evidencesIndexes = determinePredictedLabel(preds)
     
     os.chdir("..")
