@@ -3,6 +3,7 @@ import codecs
 import pickle
 import json
 import numpy as np
+import os
 import subprocess
 
 # global variable definition
@@ -21,20 +22,27 @@ def createTestSet(claim, candidateEvidences):
     
     testSetFile.close()
 
-def getPredictions():
+def getPredictions(evidence,claim_id):
     
     # call allennlp predictions shell script
     subprocess.call(['./allennlp_predictions.sh'])
     
     predsFile= codecs.open("./predictions_rte_individual.json", mode= "r", encoding= "utf-8")
+    saveFile = codecs.open("entailment_predictions/claim_" + str(claim_id) + ".json", mode = "w+", encoding="utf-8")
     
     rtePreds= []
     
-    for line in predsFile.readlines():
-        rtePreds.append(json.loads(line))
-    
+    predsContent = predsFile.readlines()
+    for i in range(len(predsContent)):
+        rtePreds.append(json.loads(predsContent[i]))
+        rtePreds[i]['premise_source_doc_id'] = evidence[i]['id']
+        rtePreds[i]['premise_source_doc_line_num'] = evidence[i]['line_num']
+        rtePreds[i]['premise_source_doc_sentence'] = evidence[i]['sentence']
+        saveFile.write(json.dumps(rtePreds[i],ensure_ascii=False) + "\n")
+
+    saveFile.close()    
     predsFile.close()
-    
+
     # for each element returns a dictionary of the form: {"predictedLabel": A, "confidence": B}
     predictionsProbability= []
     
@@ -64,7 +72,7 @@ def determinePredictedLabel(preds):
     
     
 
-def textual_entailment_evidence_retriever(claim, evidence):
+def textual_entailment_evidence_retriever(claim, evidence, claim_id):
 
     os.chdir("rte")
     potential_evidence_sentences = []
@@ -72,7 +80,7 @@ def textual_entailment_evidence_retriever(claim, evidence):
         potential_evidence_sentences.append(sentence['sentence'])
 
     createTestSet(claim, potential_evidence_sentences)
-    preds= getPredictions()
+    preds= getPredictions(evidence, claim_id)
     predictedLabel, evidencesIndexes = determinePredictedLabel(preds)
     
     os.chdir("..")

@@ -20,6 +20,8 @@ wiki_split_docs_dir = "data/wiki-pages/wiki-pages-split"
 test_file = jsonlines.open(test_file)
 test_set = []
 
+claim_id = 1
+
 wiki_entities = os.listdir(wiki_split_docs_dir)
 for i in range(len(wiki_entities)):
 	wiki_entities[i] = wiki_entities[i].replace("-SLH-","/")
@@ -63,7 +65,8 @@ with jsonlines.open(results_file, mode='w') as writer:
 		# print(relevant_sentences)
 		relevant_docs = relevant_docs + list(example['predicted_pages'])
 		relevant_docs = list(set(relevant_docs))
-		result = rte.textual_entailment_evidence_retriever(example['claim'],relevant_sentences)
+		result = rte.textual_entailment_evidence_retriever(example['claim'],relevant_sentences,claim_id)
+		claim_id = claim_id + 1
 		final_result = {}
 		final_result['id'] = example['id']
 		final_result['predicted_label'] = result['label']
