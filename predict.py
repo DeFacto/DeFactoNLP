@@ -11,7 +11,7 @@ import unicodedata as ud
 
 nlp = spacy.load('en_core_web_lg')
 
-test_file = "data/shared_task_dev_public_relevant_docs.jsonl"
+test_file = "data/shared_task_test_relevant_docs.jsonl"
 results_file = "predictions.jsonl"
 
 wiki_dir = 'data/wiki-pages/wiki-pages'
@@ -26,7 +26,7 @@ wiki_entities = os.listdir(wiki_split_docs_dir)
 for i in range(len(wiki_entities)):
 	wiki_entities[i] = wiki_entities[i].replace("-SLH-","/")
 	wiki_entities[i] = wiki_entities[i].replace("_"," ")
-	wiki_entities[i] = wiki_entities[i][:-4]
+	wiki_entities[i] = wiki_entities[i][:-5]
 	wiki_entities[i] = wiki_entities[i].replace("-LRB-","(")
 	wiki_entities[i] = wiki_entities[i].replace("-RRB-",")")
 
@@ -40,7 +40,10 @@ with jsonlines.open(results_file, mode='w') as writer:
 		relevant_docs,entities = doc_retrieval.getRelevantDocs(example['claim'],wiki_entities,"StanfordNER",nlp)
 		relevant_docs = list(set(relevant_docs))
 		print(example['claim'])
+		print(relevant_docs)
+		print(entities)
 		relevant_sentences = sentence_retrieval.getRelevantSentences(relevant_docs,entities,wiki_split_docs_dir)
+		print(relevant_sentences)
 		for i in range(len(example['predicted_sentences'])):
 			relevant_doc = ud.normalize('NFC',example['predicted_sentences'][i][0])
 			relevant_doc = relevant_doc.replace("/","-SLH-")
@@ -62,7 +65,7 @@ with jsonlines.open(results_file, mode='w') as writer:
 			temp['line_num'] = example['predicted_sentences'][i][1]
 			temp['sentence'] = lines[example['predicted_sentences'][i][1]]
 			relevant_sentences.append(temp)
-		# print(relevant_sentences)
+		print(relevant_sentences)
 		relevant_docs = relevant_docs + list(example['predicted_pages'])
 		relevant_docs = list(set(relevant_docs))
 		result = rte.textual_entailment_evidence_retriever(example['claim'],relevant_sentences,claim_id)

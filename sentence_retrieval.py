@@ -6,10 +6,10 @@ import codecs
 import utilities
 
 def getRelevantSentences(relevant_docs, entities, wiki_split_docs_dir):
-	split_entities = []
+	# split_entities = []
 	relevant_sentences = []
-	for ent in entities:
-		split_entities = split_entities + ent.split(" ")
+	# for ent in entities:
+	# 	split_entities = split_entities + ent.split(" ")
 	for relevant_doc in relevant_docs:
 		file = codecs.open(wiki_split_docs_dir + "/" + relevant_doc + ".json","r","utf-8")
 		file = json.load(file)
