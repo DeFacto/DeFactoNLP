@@ -2,7 +2,7 @@ import wikipediaapi
 from sklearn.feature_extraction.text import CountVectorizer
 from nltk import sent_tokenize
 
-from coffeeandnoodles.SolrUtils import SolrUtils
+from defacto.SolrUtils import SolrUtils
 
 
 class WikiPediaUtils(object):
