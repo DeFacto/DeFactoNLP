@@ -1,4 +1,4 @@
-from coffeeandnoodles.SolrUtils import SolrUtils
+from defacto.SolrUtils import SolrUtils
 from defacto.core_util import get_topic_terms
 from defacto.rel_extract import TripleExtraction_ClausIE
 from defacto.wikipedia import WikiPediaUtils
