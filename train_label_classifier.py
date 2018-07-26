@@ -29,8 +29,14 @@ def populate_train(gold_train,entailment_predictions_train):
 		support_confidence = 0
 		refute_confidence = 0
 		nei_confidence = 0
+		
+		support_max_conf_score= 0.0
+		refute_max_conf_score= 0.0
+		nei_max_conf_score= 0.0
+		
 		for line in entailment_results_file:
 			line = json.loads(line)
+			
 			maxIndex= np.argmax(np.asarray(line["label_probs"]))
 			if maxIndex == 0:
 				nei_count += 1
@@ -41,9 +47,29 @@ def populate_train(gold_train,entailment_predictions_train):
 			else:
 				refute_count += 1
 				refute_confidence += line["label_probs"][maxIndex]
-		features = [nei_count,nei_confidence,support_count,support_confidence,refute_count,refute_confidence]
+			
+			
+			if nei_max_conf_score < line["label_probs"][0]:
+				nei_max_conf_score= line["label_probs"][0]
+			
+			if support_max_conf_score < line["label_probs"][1]:
+				support_max_conf_score= line["label_probs"][1]
+			
+			if refute_max_conf_score < line["label_probs"][2]:
+				refute_max_conf_score= line["label_probs"][2]
+			
+			
+		# @Aniketh suggestion
+		#features = [nei_count,nei_confidence,support_count,support_confidence,refute_count,refute_confidence]
+		
+		# @Gil suggestion
+		features = [float(nei_confidence) / float(nei_count), nei_max_conf_score, float(support_confidence) / float(support_count), support_max_conf_score, float(refute_confidence) / float(refute_count), refute_max_conf_score]
+		
 		x_train.append(features)
+		
+		#TODO:
 		# get defacto features here, if required
+		
 		i += 1
 		if i == 8000:
 			break
