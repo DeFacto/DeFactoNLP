@@ -114,17 +114,17 @@ def predict_test(predictions_test,entailment_predictions_test,new_predictions_fi
 					support_count += 1
 					support_confidence += line["label_probs"][maxIndex]
 					support_evidence.append(evi)
-					support_scores.append(line["label_probs"][1])					
+					support_scores.append(line["label_probs"][0])					
 				elif maxIndex == 1:
 					refute_count += 1
 					refute_confidence += line["label_probs"][maxIndex]
 					refute_evidence.append(evi)
-					refute_scores.append(line["label_probs"][2])					
+					refute_scores.append(line["label_probs"][1])					
 				else:
 					nei_count += 1
 					nei_confidence += line["label_probs"][maxIndex]					
 					nei_evidence.append(evi)
-					nei_scores.append(line["label_probs"][0])					
+					nei_scores.append(line["label_probs"][2])					
 							
 				if support_max_conf_score < line["label_probs"][0]:
 					support_max_conf_score= line["label_probs"][0]
