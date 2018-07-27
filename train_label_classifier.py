@@ -7,7 +7,9 @@ import pickle
 from sklearn import svm
 from sklearn.externals import joblib
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, Normalizer,
+from sklearn.preprocessing import MinMaxScaler, Normalizer
+from sklearn.metrics import classification_report
+from sklearn.ensemble import RandomForestClassifier
 
 labeltoint = {}
 labeltoint['SUPPORTS'] = 0
@@ -34,10 +36,14 @@ def populate_train(gold_train,entailment_predictions_train):
 		support_max_conf_score= 0.0
 		refute_max_conf_score= 0.0
 		nei_max_conf_score= 0.0
-		
+		evidence_so_far = []
 		for line in entailment_results_file:
 			line = json.loads(line)
-			
+			evi = [line['premise_source_doc_id'],line['premise_source_doc_line_num']]
+			if evi in evidence_so_far:
+				continue
+			else:
+				evidence_so_far.append(evi)
 			maxIndex= np.argmax(np.asarray(line["label_probs"]))
 			if maxIndex == 0:
 				support_count += 1
@@ -111,6 +117,8 @@ def predict_test(predictions_test,entailment_predictions_test,new_predictions_fi
 			for line in entailment_results_file:
 				line = json.loads(line)
 				evi = [line['premise_source_doc_id'],line['premise_source_doc_line_num']]
+				if evi in support_evidence or evi in refute_evidence or evi in nei_evidence:
+					continue
 				maxIndex= np.argmax(np.asarray(line["label_probs"]))
 				if maxIndex == 0:
 					support_count += 1
@@ -204,10 +212,10 @@ print(x_train.shape)
 print(y_train.shape)
 
 
-#clf = svm.SVC()
+clf = RandomForestClassifier(max_depth=3,n_estimators=50,criterion="entropy")
 
-#clf= Pipeline([('scaler', Normalizer()), ('clf', svm.SVC())])
-clf= Pipeline([('scaler', MinMaxScaler()), ('clf', svm.SVC())])
+# clf= Pipeline([('scaler', Normalizer()), ('clf', svm.SVC())])
+# clf= Pipeline([('scaler', MinMaxScaler()), ('clf', svm.SVC())])
 
 clf.fit(x_train,y_train)
 
@@ -217,5 +225,8 @@ joblib.dump(clf, 'label_classifier.pkl')
 
 # print(clf.score(x_test,y_test))
 # print(clf.score(x_train,y_train))
-
+# y_pred = clf.predict(x_test)
+# print(y_pred)
+# print(y_pred.shape)
+# print(classification_report(y_test, y_pred, target_names=['SUPPORTS', "REFUTES", "NEI"]))
 predict_test(predictions_test,entailment_predictions_test,new_predictions_file)

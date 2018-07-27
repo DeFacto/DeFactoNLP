@@ -11,8 +11,8 @@ import unicodedata as ud
 
 nlp = spacy.load('en_core_web_lg')
 
-test_file = "data/shared_task_test_relevant_docs.jsonl"
-results_file = "predictions.jsonl"
+test_file = "data/shared_task_dev_public_relevant_docs.jsonl"
+results_file = "predictions_dev.jsonl"
 
 wiki_dir = 'data/wiki-pages/wiki-pages'
 wiki_split_docs_dir = "data/wiki-pages/wiki-pages-split"
@@ -20,7 +20,7 @@ wiki_split_docs_dir = "data/wiki-pages/wiki-pages-split"
 test_file = jsonlines.open(test_file)
 test_set = []
 
-claim_id = 1
+claim_id = 14001
 
 wiki_entities = os.listdir(wiki_split_docs_dir)
 for i in range(len(wiki_entities)):
@@ -36,7 +36,7 @@ for lines in test_file:
 	test_set.append(lines)
 
 with jsonlines.open(results_file, mode='w') as writer:
-	for example in test_set:
+	for example in test_set[14000:]:
 		relevant_docs,entities = doc_retrieval.getRelevantDocs(example['claim'],wiki_entities,"StanfordNER",nlp)
 		relevant_docs = list(set(relevant_docs))
 		print(example['claim'])

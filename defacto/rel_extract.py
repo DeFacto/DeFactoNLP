@@ -127,7 +127,7 @@ class TripleExtraction_ClausIE(object):
 
     def __init__(self):
         try:
-            self.cl = ClausIE.get_instance(jar_filename=CLAUSIE_PATH)
+            self.cl = ClausIE.get_instance(jar_filename='/data/defacto/github/fever/clausie/clausie/clausie.jar')
         except Exception as error:
             raise error
 
