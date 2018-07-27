@@ -6,6 +6,8 @@ import numpy as np
 import pickle
 from sklearn import svm
 from sklearn.externals import joblib
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler, Normalizer,
 
 labeltoint = {}
 labeltoint['SUPPORTS'] = 0
@@ -201,7 +203,12 @@ print(y_train)
 print(x_train.shape)
 print(y_train.shape)
 
-clf = svm.SVC()
+
+#clf = svm.SVC()
+
+#clf= Pipeline([('scaler', Normalizer()), ('clf', svm.SVC())])
+clf= Pipeline([('scaler', MinMaxScaler()), ('clf', svm.SVC())])
+
 clf.fit(x_train,y_train)
 
 
