@@ -338,9 +338,10 @@ def train_model():
     try:
         from sklearn.ensemble import RandomForestClassifier
 
-        with open(defacto_output_folder + 'features.proof.train', 'rb') as handle:
+        with open(DEFACTO_OUTPUT_FOLDER + 'features.proof.train', 'rb') as handle:
             data = pickle.load(handle)
             data = np.array(data)
+            print(data.shape)
             data_X = data[:, 0]
             data_y = data[:, 1]
 
@@ -351,7 +352,7 @@ def train_model():
             y = []
             [y.extend(row) for row in [r for r in data_y]]
 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=MODEL_TEST_SIZE, random_state=42)
 
             print('training the classifier...')
             clf = RandomForestClassifier()
@@ -360,7 +361,7 @@ def train_model():
             #P, R, F, S = sklearn.metrics.precision_recall_fscore_support(y_test, predictions)
             print(classification_report(y_test, predictions, digits=3))
 
-            filename = defacto_output_folder + 'rfc.mod'
+            filename = DEFACTO_OUTPUT_FOLDER + 'rfc.mod'
             joblib.dump(model, filename)
 
     except Exception as e:
@@ -385,24 +386,24 @@ def extract_features(defactoNL_file):
     try:
         import os
         from defacto.model_nl import ModelNL
-        print(os.getcwd() + '/' + defactoNL_file)
+        print('extract features to: ', os.getcwd() + '/' + defactoNL_file)
         with open(os.getcwd() + '/' + defactoNL_file, 'rb') as handle:
             defactoNL = pickle.load(handle)
             X = []
             y = []
             if defactoNL.error_on_extract_triples is True:
-                raise Exception('error on defacto triple extraction')
+                print('error on defacto triple extraction here, ignoring...')
+            else:
+                for proof in defactoNL.proofs:
+                    y.append(1)
+                    X.append(_extract_features(proof, defactoNL.claim, defactoNL.triples))
 
-            for proof in defactoNL.proofs:
-                y.append(1)
-                X.append(_extract_features(proof, defactoNL.claim, defactoNL.triples))
+                for non_proof in defactoNL.sentences:
+                    y.append(0)
+                    X.append(_extract_features(non_proof, defactoNL.claim, defactoNL.triples))
 
-            for non_proof in defactoNL.sentences:
-                y.append(0)
-                X.append(_extract_features(non_proof, defactoNL.claim, defactoNL.triples))
-
-            assert len(X) == len(y)
-            return (X, y)
+                assert len(X) == len(y)
+                return (X, y)
 
     except Exception as e:
         print('-- error ', repr(e))
@@ -414,30 +415,41 @@ def export_training_data_proof_detection(defacto_output_folder):
 
         job_args=[]
         i = 0
-        f = Path(ROOT_PATH + "/" + defacto_output_folder + 'features.proof.train')
-        if not f.exists():
-            for file in glob.glob(defacto_output_folder + "*.pkl"):
-                if i > MAX_TRAINING_DATA:
-                    break
-                job_args.append(file)
-                i += 1
+        #f = Path(ROOT_PATH + "/" + DEFACTO_OUTPUT_FOLDER + 'features.proof.train')
+        #print(f)
+        #if not f.exists():
+        for file in glob.glob(defacto_output_folder + "*.pkl"):
+            if i > MAX_TRAINING_DATA:
+                break
+            job_args.append(file)
+            i += 1
 
         print('export_training_data_proof_detection: job args created: ' + str(len(job_args)))
+
         if len(job_args) > 0:
             with Pool(processes=int(4)) as pool:
                 out = pool.map(extract_features, job_args)
 
+            o2 = []
+            for o in out:
+                if o is not None:
+                    o2.append(o)
+
+            assert len(o2) > 0
+
             with open(defacto_output_folder + 'features.proof.train', 'wb') as handle:
-                pickle.dump(out, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                pickle.dump(o2, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                print('file dump OK', len(o2))
+
     except Exception as e:
-        print(repr(e))
+        print('error export_training_data_proof_detection()', repr(e))
 
 def export_defacto_models(train_file):
     try:
         job_args = []
         with jsonlines.open(train_file, mode='r') as reader:
             for obj in reader:
-                f = Path(ROOT_PATH + "/" + defacto_output_folder + 'defacto_' + str(obj["id"]) + '.pkl')
+                f = Path(ROOT_PATH + "/" + DEFACTO_OUTPUT_FOLDER + 'defacto_' + str(obj["id"]) + '.pkl')
                 if not f.exists() and obj["label"] != 'NOT ENOUGH INFO':
                     job_args.append((obj["id"], obj["claim"], obj["label"], obj["evidence"][0]))
 
@@ -480,7 +492,7 @@ def save_defacto_model(fever_id, claim, label, evidences_train):
                             defactoNL.sentences.append(_e[index])
                             defactoNL.sentences_tt.append(_tts[index])
 
-        with open(defacto_output_folder + 'defacto_' + str(defactoNL.id) + '.pkl', 'wb') as handle:
+        with open(DEFACTO_OUTPUT_FOLDER + 'defacto_' + str(defactoNL.id) + '.pkl', 'wb') as handle:
             pickle.dump(defactoNL, handle, protocol=pickle.HIGHEST_PROTOCOL)
         return 0
     except Exception as e:
@@ -505,9 +517,6 @@ if __name__ == '__main__':
         from multiprocessing.dummy import Pool
         import spacy
 
-        # PATH_WIKIPAGES = '/data/defacto/github/fever/data/wiki-pages/wiki-pages-split/'
-        PATH_WIKIPAGES = '/Users/diegoesteves/Github/factchecking/DeFacto/python/defacto/'
-
         # nlp = spacy.load('en_core_web_sm') # no vectors
         nlp = spacy.load('en_core_web_md')
         # lg ?
@@ -531,17 +540,22 @@ if __name__ == '__main__':
 
         stopwords = stopwords.words('english')
         punctuations = string.punctuation
-
+        # PATH_WIKIPAGES = '/data/defacto/github/fever/data/wiki-pages/wiki-pages-split/'
+        PATH_WIKIPAGES = '/Users/diegoesteves/Github/factchecking/DeFacto/python/defacto/'
         ROOT_PATH = os.getcwd()
-        MAX_TRAINING_DATA = 1000
-        train_file = "small_train.jsonl"
-        defacto_output_folder = 'defacto_models/'
+        MAX_TRAINING_DATA = 5000
+        MODEL_TEST_SIZE = 0.3
+        TRAIN_FILE = "/data/defacto/github/fever/data/subsample_train_relevant_docs.jsonl"
+        # TRAIN_FILE = "/data/defacto/github/fever/data/train.jsonl"
+        # TRAIN_FILE = "small_train.jsonl"
+        # DEFACTO_OUTPUT_FOLDER = 'defacto_models/'
+        DEFACTO_OUTPUT_FOLDER = 'defacto/defacto_models/'
 
         print('export_defacto_models()')
-        export_defacto_models(train_file)
+        export_defacto_models(TRAIN_FILE)
         print('=======================================================================================')
         print('export_training_data_proof_detection()')
-        export_training_data_proof_detection(defacto_output_folder)
+        export_training_data_proof_detection(DEFACTO_OUTPUT_FOLDER)
         print('=======================================================================================')
         print('train_model()')
         train_model()
