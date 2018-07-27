@@ -8,10 +8,10 @@ from sklearn import svm
 from sklearn.externals import joblib
 
 labeltoint = {}
-labeltoint['NOT ENOUGH INFO'] = 0
-labeltoint['SUPPORTS'] = 1
-labeltoint['REFUTES'] = 2
-intolabel = ['NOT ENOUGH INFO','SUPPORTS','REFUTES']
+labeltoint['SUPPORTS'] = 0
+labeltoint['REFUTES'] = 1
+labeltoint['NOT ENOUGH INFO'] = 2
+intolabel = ['SUPPORTS','REFUTES','NOT ENOUGH INFO']
 
 # generate features for train set
 def populate_train(gold_train,entailment_predictions_train):
@@ -38,24 +38,23 @@ def populate_train(gold_train,entailment_predictions_train):
 			
 			maxIndex= np.argmax(np.asarray(line["label_probs"]))
 			if maxIndex == 0:
-				nei_count += 1
-				nei_confidence += line["label_probs"][maxIndex]
-			elif maxIndex == 1:
 				support_count += 1
 				support_confidence += line["label_probs"][maxIndex]
-			else:
+			elif maxIndex == 1:
 				refute_count += 1
 				refute_confidence += line["label_probs"][maxIndex]
+			else:
+				nei_count += 1
+				nei_confidence += line["label_probs"][maxIndex]
 			
+			if support_max_conf_score < line["label_probs"][0]:
+				support_max_conf_score= line["label_probs"][0]
 			
-			if nei_max_conf_score < line["label_probs"][0]:
-				nei_max_conf_score= line["label_probs"][0]
-			
-			if support_max_conf_score < line["label_probs"][1]:
-				support_max_conf_score= line["label_probs"][1]
-			
-			if refute_max_conf_score < line["label_probs"][2]:
-				refute_max_conf_score= line["label_probs"][2]
+			if refute_max_conf_score < line["label_probs"][1]:
+				refute_max_conf_score= line["label_probs"][1]
+
+			if nei_max_conf_score < line["label_probs"][2]:
+				nei_max_conf_score= line["label_probs"][2]
 
 		features = [nei_max_conf_score, support_max_conf_score, refute_max_conf_score,
 					nei_count,nei_confidence,support_count,support_confidence,refute_count,refute_confidence]
@@ -112,26 +111,27 @@ def predict_test(predictions_test,entailment_predictions_test,new_predictions_fi
 				evi = [line['premise_source_doc_id'],line['premise_source_doc_line_num']]
 				maxIndex= np.argmax(np.asarray(line["label_probs"]))
 				if maxIndex == 0:
-					nei_count += 1
-					nei_confidence += line["label_probs"][maxIndex]					
-					nei_evidence.append(evi)
-					nei_scores.append(line["label_probs"][0])
-				elif maxIndex == 1:
 					support_count += 1
 					support_confidence += line["label_probs"][maxIndex]
 					support_evidence.append(evi)
-					support_scores.append(line["label_probs"][1])
-				else:
+					support_scores.append(line["label_probs"][1])					
+				elif maxIndex == 1:
 					refute_count += 1
 					refute_confidence += line["label_probs"][maxIndex]
 					refute_evidence.append(evi)
-					refute_scores.append(line["label_probs"][2])
-				if nei_max_conf_score < line["label_probs"][0]:
-					nei_max_conf_score= line["label_probs"][0]			
-				if support_max_conf_score < line["label_probs"][1]:
-					support_max_conf_score= line["label_probs"][1]
-				if refute_max_conf_score < line["label_probs"][2]:
-					refute_max_conf_score= line["label_probs"][2]
+					refute_scores.append(line["label_probs"][2])					
+				else:
+					nei_count += 1
+					nei_confidence += line["label_probs"][maxIndex]					
+					nei_evidence.append(evi)
+					nei_scores.append(line["label_probs"][0])					
+							
+				if support_max_conf_score < line["label_probs"][0]:
+					support_max_conf_score= line["label_probs"][0]
+				if refute_max_conf_score < line["label_probs"][1]:
+					refute_max_conf_score= line["label_probs"][1]
+				if nei_max_conf_score < line["label_probs"][2]:
+					nei_max_conf_score= line["label_probs"][2]
 			# print(support_scores)
 			# print(support_evidence)
 			# print(support_count)	
@@ -185,11 +185,11 @@ entailment_predictions_train = "rte/entailment_predictions_train"
 entailment_predictions_test = "rte/entailment_predictions_test"
 
 x_train, y_train = populate_train(gold_train,entailment_predictions_train)
-# x_test = x_train[6000:]
-# y_test = y_train[6000:]
+# x_test = x_train[7000:]
+# y_test = y_train[7000:]
 
-# x_train = x_train[:6000]
-# y_train = y_train[:6000]
+# x_train = x_train[:7000]
+# y_train = y_train[:7000]
 x_train = np.asarray(x_train)
 y_train = np.asarray(y_train)
 
@@ -204,9 +204,11 @@ print(y_train.shape)
 clf = svm.SVC()
 clf.fit(x_train,y_train)
 
+
 joblib.dump(clf, 'label_classifier.pkl') 
 # clf = joblib.load('filename.pkl')
 
 # print(clf.score(x_test,y_test))
+# print(clf.score(x_train,y_train))
 
 predict_test(predictions_test,entailment_predictions_test,new_predictions_file)
