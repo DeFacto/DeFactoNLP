@@ -14,10 +14,6 @@ import sentence_retrieval
 random.seed(12345)
 
 # global variable definition
-labelToString = {
-	0: "NOT ENOUGH INFO",
-	1: 'SUPPORTS',
-	2: 'REFUTES'}
 
 label_fever_to_snli = {
 	"SUPPORTS": "entailment",
