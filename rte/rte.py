@@ -8,9 +8,10 @@ import subprocess
 
 # global variable definition
 labelToString = {
-    0: "NOT ENOUGH INFO",
-    1: 'SUPPORTS',
-    2: 'REFUTES'}
+    0: "SUPPORTS",
+    1: 'REFUTES',
+    2: 'NOT ENOUGH INFO'}
+
 
 def createTestSet(claim, candidateEvidences):
     
@@ -55,9 +56,9 @@ def getPredictions(claim,evidence,claim_id):
 
 def determinePredictedLabel(preds):
     
-    nonePredictions = [elemIndex for elemIndex in range(len(preds)) if preds[elemIndex]["predictedLabel"] == 0]
-    supportPredictions= [elemIndex for elemIndex in range(len(preds)) if preds[elemIndex]["predictedLabel"] == 1]
-    contradictionPredictions= [elemIndex for elemIndex in range(len(preds)) if preds[elemIndex]["predictedLabel"] == 2]
+    supportPredictions= [elemIndex for elemIndex in range(len(preds)) if preds[elemIndex]["predictedLabel"] == 0]
+    contradictionPredictions= [elemIndex for elemIndex in range(len(preds)) if preds[elemIndex]["predictedLabel"] == 1]
+    nonePredictions = [elemIndex for elemIndex in range(len(preds)) if preds[elemIndex]["predictedLabel"] == 2]
     
     # determine the number of predictions for each case
     # return the prediction for the most predicted label and corresponding evidences
@@ -65,11 +66,11 @@ def determinePredictedLabel(preds):
     mostCommonPrediction= np.argmax(numberOfPredictionsPerLabel)
     
     if mostCommonPrediction == 0:
-        return (0, [])
+        return (0, supportPredictions)
     elif mostCommonPrediction == 1:
-        return (1, supportPredictions)
+        return (1, contradictionPredictions)
     else:
-        return (2, contradictionPredictions)
+        return (2, [])
     
     
 
