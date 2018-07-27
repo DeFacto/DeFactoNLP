@@ -28,8 +28,7 @@ def populate_train(gold_train,entailment_predictions_train):
 		nei_count = 0
 		support_confidence = 0
 		refute_confidence = 0
-		nei_confidence = 0
-		
+		nei_confidence = 0		
 		support_max_conf_score= 0.0
 		refute_max_conf_score= 0.0
 		nei_max_conf_score= 0.0
@@ -57,22 +56,29 @@ def populate_train(gold_train,entailment_predictions_train):
 			
 			if refute_max_conf_score < line["label_probs"][2]:
 				refute_max_conf_score= line["label_probs"][2]
+
+		features = [nei_max_conf_score, support_max_conf_score, refute_max_conf_score,
+					nei_count,nei_confidence,support_count,support_confidence,refute_count,refute_confidence]
+
+		if nei_count!=0:
+			features.append(float(nei_confidence) / float(nei_count))
+		else:
+			features.append(0)
+		if support_count!=0:
+			features.append(float(support_confidence) / float(support_count))
+		else:
+			features.append(0)
+		if refute_count!=0:
+			features.append(float(refute_confidence) / float(refute_count))
+		else:
+			features.append(0)
 			
-			
-		# @Aniketh suggestion
-		#features = [nei_count,nei_confidence,support_count,support_confidence,refute_count,refute_confidence]
-		
-		# @Gil suggestion
-		features = [float(nei_confidence) / float(nei_count), nei_max_conf_score, float(support_confidence) / float(support_count), support_max_conf_score, float(refute_confidence) / float(refute_count), refute_max_conf_score]
-		
 		x_train.append(features)
 		
 		#TODO:
 		# get defacto features here, if required
 		
 		i += 1
-		if i == 8000:
-			break
 	return (x_train,y_train)
 
 def predict_test(predictions_test,entailment_predictions_test,new_predictions_file):
@@ -95,6 +101,12 @@ def predict_test(predictions_test,entailment_predictions_test,new_predictions_fi
 			support_confidence = 0
 			refute_confidence = 0
 			nei_confidence = 0
+			support_scores = []
+			refute_scores = []
+			nei_scores = []
+			support_max_conf_score= 0.0
+			refute_max_conf_score= 0.0
+			nei_max_conf_score= 0.0
 			for line in entailment_results_file:
 				line = json.loads(line)
 				evi = [line['premise_source_doc_id'],line['premise_source_doc_line_num']]
@@ -103,26 +115,66 @@ def predict_test(predictions_test,entailment_predictions_test,new_predictions_fi
 					nei_count += 1
 					nei_confidence += line["label_probs"][maxIndex]					
 					nei_evidence.append(evi)
+					nei_scores.append(line["label_probs"][0])
 				elif maxIndex == 1:
 					support_count += 1
 					support_confidence += line["label_probs"][maxIndex]
 					support_evidence.append(evi)
+					support_scores.append(line["label_probs"][1])
 				else:
 					refute_count += 1
 					refute_confidence += line["label_probs"][maxIndex]
 					refute_evidence.append(evi)
-			features = [nei_count,nei_confidence,support_count,support_confidence,refute_count,refute_confidence]
+					refute_scores.append(line["label_probs"][2])
+				if nei_max_conf_score < line["label_probs"][0]:
+					nei_max_conf_score= line["label_probs"][0]			
+				if support_max_conf_score < line["label_probs"][1]:
+					support_max_conf_score= line["label_probs"][1]
+				if refute_max_conf_score < line["label_probs"][2]:
+					refute_max_conf_score= line["label_probs"][2]
+			# print(support_scores)
+			# print(support_evidence)
+			# print(support_count)	
+					
+			features = [nei_max_conf_score, support_max_conf_score, refute_max_conf_score,
+						nei_count,nei_confidence,support_count,support_confidence,refute_count,refute_confidence]
+
+			if nei_count!=0:
+				features.append(float(nei_confidence) / float(nei_count))
+				nei_scores, nei_evidence = zip(*sorted(zip(nei_scores, nei_evidence), reverse=True))
+			else:
+				features.append(0)
+			if support_count!=0:
+				features.append(float(support_confidence) / float(support_count))
+				support_scores, support_evidence = zip(*sorted(zip(support_scores, support_evidence), reverse=True))
+			else:
+				features.append(0)
+			if refute_count!=0:
+				features.append(float(refute_confidence) / float(refute_count))
+				refute_scores, refute_evidence = zip(*sorted(zip(refute_scores, refute_evidence), reverse=True))
+			else:
+				features.append(0)
 			# get defacto features here, if required
 			features = np.asarray(features)
 			features = features.reshape(1,features.shape[0])
-			new_pred['predicted_label'] = labeltoint[clf.predict(features)[0]]
+			# print(features)
+			new_pred['predicted_label'] = intolabel[clf.predict(features)[0]]
 			if new_pred['predicted_label'] == "SUPPORTS":
-				new_pred['predicted_evidence'] = support_evidence
+				if support_count == 0:
+					new_pred['predicted_label'] = "NOT ENOUGH INFO"
+					new_pred['predicted_evidence'] = []
+				else:
+					new_pred['predicted_evidence'] = support_evidence[:5]
 			elif new_pred['predicted_label'] == "REFUTES":
-				new_pred['predicted_evidence'] = refute_evidence
+				if refute_count == 0:
+					new_pred['predicted_label'] = "NOT ENOUGH INFO"
+					new_pred['predicted_evidence'] = []
+				else:
+					new_pred['predicted_evidence'] = refute_evidence[:5]
 			else:
-				new_pred['predicted_evidence'] = nei_evidence
+				new_pred['predicted_evidence'] = []
 			writer.write(new_pred)
+			i += 1
 
 predictions_train = "predictions_train.jsonl"
 predictions_test = "predictions.jsonl"
