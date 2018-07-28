@@ -16,6 +16,7 @@ from multiprocessing import Pool
 
 entailment_predictions = "rte/entailment_predictions_test"
 max_num_claims = 19998
+defacto_clf = joblib.load('defacto/defacto_models/rfc.mod')
 
 def weed_out_evidence(claim_id):
 	entailment_results_file = entailment_predictions + "/claim_" + str(claim_id) + ".json"
@@ -39,12 +40,10 @@ def weed_out_evidence(claim_id):
 				x = proof_extraction_train._extract_features(line['premise_source_doc_sentence'],line['claim'],defactoModel.triples)
 				x = np.asarray(x)
 				x = x.reshape(1, -1)
-				defacto_clf = joblib.load('defacto/defacto_models/rfc.mod')
 				y = defacto_clf.predict(x)
 				defacto_class = y[0]
 			except Exception as e:
 				print("Bleh")
-				raise e
 			print(line['claim'])
 			print(line['premise_source_doc_sentence'])
 			print(defacto_class)
@@ -53,10 +52,9 @@ def weed_out_evidence(claim_id):
 			else:
 				weeded_out_file.write(oriline)
 	except Exception as e:
-		raise e
 		for line in entailment_results_file:
 			weeded_out_file.write(line)
 
 if __name__ == '__main__':
-	pool = Pool(processes=16)
+	pool = Pool(processes=32)
 	pool.map(weed_out_evidence,list(range(1,max_num_claims+1)))
