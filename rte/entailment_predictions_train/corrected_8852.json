@@ -1,0 +1,1 @@
+{"label_logits": [-0.4747520983219147, -1.2400554418563843, 0.10334798693656921], "label_probs": [0.30789682269096375, 0.1432313770055771, 0.5488717555999756], "claim": "Telangana is bordered by a Moroccan state.", "premise_source_doc_id": "2M_TV", "premise_source_doc_line_num": 3, "premise_source_doc_sentence": "While approximately 60 % is controlled by the Moroccan state ."}

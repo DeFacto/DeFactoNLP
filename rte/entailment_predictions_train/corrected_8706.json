@@ -1,0 +1,1 @@
+{"label_logits": [-1.8909721374511719, 2.6353797912597656, -0.5846884250640869], "label_probs": [0.01029725931584835, 0.9516808390617371, 0.03802186995744705], "claim": "Taylor Kitsch is a singer.", "premise_source_doc_id": "Taylor_Kitsch", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Taylor Kitsch  (  born April 8 , 1981  )  is a Canadian actor and model ."}

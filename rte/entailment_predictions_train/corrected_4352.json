@@ -1,0 +1,1 @@
+{"label_logits": [-0.14854276180267334, -0.9377818703651428, -0.14344622194766998], "label_probs": [0.4066198170185089, 0.18468275666236877, 0.4086974561214447], "claim": "George Tuska acted under the name Carl Larson", "premise_source_doc_id": "Carl_Larson", "premise_source_doc_line_num": 5, "premise_source_doc_sentence": "Carl Larson , pen name of George Tuska"}

@@ -1,0 +1,1 @@
+{"label_logits": [1.2696064710617065, -1.1627947092056274, -2.1129868030548096], "label_probs": [0.8914364576339722, 0.07829102128744125, 0.03027253784239292], "claim": "Avril Lavigne sang the song Complicated.", "premise_source_doc_id": "Complicated", "premise_source_doc_line_num": 5, "premise_source_doc_sentence": "`` Complicated ''  (  Avril Lavigne song  ) "}

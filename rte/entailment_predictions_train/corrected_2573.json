@@ -1,0 +1,1 @@
+{"label_logits": [-0.7395520806312561, -0.22528742253780365, -0.09734417498111725], "label_probs": [0.21867094933986664, 0.365707129240036, 0.41562193632125854], "claim": "Heroin overdose is incurable and untreatable.", "premise_source_doc_id": "Heroin", "premise_source_doc_line_num": 15, "premise_source_doc_sentence": "A heroin overdose may be treated with naloxone ."}

@@ -1,0 +1,1 @@
+{"label_logits": [3.3453633785247803, -2.33394455909729, -2.6909868717193604], "label_probs": [0.9942273497581482, 0.0033962028101086617, 0.0023764686193317175], "claim": "Observer Media is a company.", "premise_source_doc_id": "Observer_Media", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Observer Media is an American print and online media company ."}

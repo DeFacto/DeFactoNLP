@@ -1,0 +1,1 @@
+{"label_logits": [-1.2530471086502075, -0.5271931886672974, 0.13515138626098633], "label_probs": [0.1413603574037552, 0.29212048649787903, 0.5665191411972046], "claim": "Fred Trump's dad's name was Frederick.", "premise_source_doc_id": "Fred_Trump", "premise_source_doc_line_num": 3, "premise_source_doc_sentence": "Trump 's father , Frederick , died when Trump was 13 years old ."}

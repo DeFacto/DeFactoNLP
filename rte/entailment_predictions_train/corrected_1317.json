@@ -1,0 +1,1 @@
+{"label_logits": [1.0853806734085083, 0.08489486575126648, -2.5800747871398926], "label_probs": [0.7177239656448364, 0.26390767097473145, 0.01836836151778698], "claim": "The Kitti's hog-nosed bat belongs to the Panthera order.", "premise_source_doc_id": "Kitti", "premise_source_doc_line_num": 2, "premise_source_doc_sentence": "Kitti 's hog-nosed bat"}

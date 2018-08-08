@@ -1,0 +1,1 @@
+{"label_logits": [-0.16702812910079956, 1.8439583778381348, -2.3163113594055176], "label_probs": [0.1164516881108284, 0.8699737787246704, 0.013574504293501377], "claim": "Amoxicillin cannot be taken by mouth.", "premise_source_doc_id": "Amoxicillin", "premise_source_doc_line_num": 3, "premise_source_doc_sentence": "It is taken by mouth , or less commonly by injection ."}

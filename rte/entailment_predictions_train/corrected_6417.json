@@ -1,0 +1,1 @@
+{"label_logits": [-0.8572545051574707, 1.2559797763824463, -1.1416687965393066], "label_probs": [0.09972658008337021, 0.8252336382865906, 0.07503975182771683], "claim": "Fabian Cancellara was born in Italy.", "premise_source_doc_id": "Fabian_Cancellara", "premise_source_doc_line_num": 1, "premise_source_doc_sentence": "He was born in Wohlen bei Bern , Switzerland ."}

@@ -1,0 +1,1 @@
+{"label_logits": [-0.5505446195602417, 1.012852430343628, -1.2206223011016846], "label_probs": [0.15906637907028198, 0.759544312953949, 0.08138931542634964], "claim": "Tom Franco is one of three sisters.", "premise_source_doc_id": "Tom_Franco", "premise_source_doc_line_num": 1, "premise_source_doc_sentence": "Tom Franco is the brother of actors James Franco and Dave Franco ."}

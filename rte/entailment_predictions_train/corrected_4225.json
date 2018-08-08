@@ -1,0 +1,1 @@
+{"label_logits": [-2.025045871734619, 2.7134265899658203, -1.955747365951538], "label_probs": [0.008596139959990978, 0.9821909070014954, 0.009212963283061981], "claim": "Sean Combs was not born in Harlem.", "premise_source_doc_id": "Sean_Combs", "premise_source_doc_line_num": 1, "premise_source_doc_sentence": "He was born in Harlem and was raised in Mount Vernon , New York ."}

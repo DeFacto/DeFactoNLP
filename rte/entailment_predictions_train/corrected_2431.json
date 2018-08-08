@@ -1,0 +1,1 @@
+{"label_logits": [-0.3931938111782074, 1.056636929512024, -1.1747454404830933], "label_probs": [0.17482247948646545, 0.7451621294021606, 0.08001542836427689], "claim": "Robbie Collin is a doctor.", "premise_source_doc_id": "Robbie_Collin", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Robbie Collin is a British film critic ."}

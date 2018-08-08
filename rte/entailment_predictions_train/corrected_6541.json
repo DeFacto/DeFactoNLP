@@ -1,0 +1,1 @@
+{"label_logits": [-0.4065839350223541, 0.9587240815162659, -1.0590124130249023], "label_probs": [0.18390096724033356, 0.7203271389007568, 0.09577186405658722], "claim": "Taylor Swift sold exactly one copy.", "premise_source_doc_id": "List_of_most_valuable_records", "premise_source_doc_line_num": 11, "premise_source_doc_sentence": "Only one copy made ."}

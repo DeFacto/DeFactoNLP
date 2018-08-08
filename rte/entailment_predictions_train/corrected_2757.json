@@ -1,0 +1,1 @@
+{"label_logits": [1.6284633874893188, 1.2370965480804443, -4.188816070556641], "label_probs": [0.5955544114112854, 0.4026734530925751, 0.0017721853218972683], "claim": "Starbucks was founded in 1971.", "premise_source_doc_id": "Starbucks", "premise_source_doc_line_num": 1, "premise_source_doc_sentence": "Starbucks was founded in Seattle , Washington in 1971 ."}

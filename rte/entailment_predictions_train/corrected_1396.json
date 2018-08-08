@@ -1,0 +1,1 @@
+{"label_logits": [-0.8649543523788452, 1.3016765117645264, -1.082170009613037], "label_probs": [0.09493447095155716, 0.8286663889884949, 0.07639911770820618], "claim": "Venus orbits the Moon.", "premise_source_doc_id": "Venus", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Venus is the second planet from the Sun , orbiting it every 224.7 Earth days ."}

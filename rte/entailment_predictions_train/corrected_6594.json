@@ -1,0 +1,1 @@
+{"label_logits": [-2.5118370056152344, 2.2998580932617188, -0.026814401149749756], "label_probs": [0.007356120273470879, 0.9043602347373962, 0.08828367292881012], "claim": "Drake is a vegan.", "premise_source_doc_id": "Drake", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "A drake is a male duck ."}

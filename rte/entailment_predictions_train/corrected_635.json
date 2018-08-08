@@ -1,0 +1,1 @@
+{"label_logits": [-1.1279546022415161, 1.909524917602539, -1.352846384048462], "label_probs": [0.044147733598947525, 0.9205957651138306, 0.03525649383664131], "claim": "Ted Kaczynski was born in Texas.", "premise_source_doc_id": "Ted_Kaczynski", "premise_source_doc_line_num": 5, "premise_source_doc_sentence": "Kaczynski was born and raised in Evergreen Park , Illinois ."}

@@ -1,0 +1,1 @@
+{"label_logits": [-2.2045388221740723, 2.341399669647217, -1.3329893350601196], "label_probs": [0.010241761803627014, 0.9652741551399231, 0.02448408491909504], "claim": "Paul McCartney is not a father.", "premise_source_doc_id": "Paul_McCartney", "premise_source_doc_line_num": 15, "premise_source_doc_sentence": "He has married three times and is the father of five children ."}

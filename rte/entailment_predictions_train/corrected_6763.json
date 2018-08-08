@@ -1,0 +1,1 @@
+{"label_logits": [2.3562328815460205, 0.9961540102958679, -4.801102638244629], "label_probs": [0.7952794432640076, 0.20410095155239105, 0.0006196244503371418], "claim": "Led Zeppelin formed in London.", "premise_source_doc_id": "Led_Zeppelin", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Led Zeppelin were an English rock band formed in London in 1968 ."}

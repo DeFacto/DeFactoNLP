@@ -1,0 +1,1 @@
+{"label_logits": [0.2789113223552704, -2.180833578109741, 0.5704590678215027], "label_probs": [0.4125489890575409, 0.03525509685277939, 0.5521958470344543], "claim": "Audrey Horne was introduced in a series that had two seasons.", "premise_source_doc_id": "Audrey_Horne", "premise_source_doc_line_num": 2, "premise_source_doc_sentence": "She was introduced in the pilot ."}

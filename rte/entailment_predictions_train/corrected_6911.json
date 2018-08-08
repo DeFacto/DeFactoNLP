@@ -1,0 +1,1 @@
+{"label_logits": [0.04151128977537155, 0.11988534033298492, -0.8587281107902527], "label_probs": [0.4019293487071991, 0.4346975088119507, 0.1633731722831726], "claim": "Snooki is a Pisces.", "premise_source_doc_id": "Pisces_V", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Pisces V is a deep-submergence vehicle  (  DSV  )  of the Pisces class built in 1973 ."}

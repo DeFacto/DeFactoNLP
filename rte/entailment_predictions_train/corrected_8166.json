@@ -1,0 +1,1 @@
+{"label_logits": [1.6427958011627197, -1.1069743633270264, -1.6848492622375488], "label_probs": [0.909239649772644, 0.05813911184668541, 0.032621242105960846], "claim": "A planet is Venus.", "premise_source_doc_id": "Venus", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Venus is the second planet from the Sun , orbiting it every 224.7 Earth days ."}

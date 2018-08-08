@@ -1,0 +1,1 @@
+{"label_logits": [-0.5971538424491882, -0.6961012482643127, 0.5190896391868591], "label_probs": [0.2016473263502121, 0.18265022337436676, 0.6157024502754211], "claim": "Futurama has a doll.", "premise_source_doc_id": "Futurama", "premise_source_doc_line_num": 18, "premise_source_doc_sentence": "Throughout its run , Futurama has received critical acclaim ."}

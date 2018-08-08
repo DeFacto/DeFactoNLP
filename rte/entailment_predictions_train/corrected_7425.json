@@ -1,0 +1,1 @@
+{"label_logits": [-3.99021315574646, -5.4180426597595215, 4.867258071899414], "label_probs": [0.0001422893546987325, 3.412509249756113e-05, 0.9998235702514648], "claim": "The Jackson family included American singers and songwriters in 1955.", "premise_source_doc_id": "Lists_of_American_singers", "premise_source_doc_line_num": 11, "premise_source_doc_sentence": "American singers"}

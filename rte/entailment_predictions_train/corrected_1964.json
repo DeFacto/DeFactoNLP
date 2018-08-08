@@ -1,0 +1,1 @@
+{"label_logits": [-2.211902141571045, 2.3646340370178223, -0.9979686737060547], "label_probs": [0.009847956709563732, 0.9569969177246094, 0.03315512835979462], "claim": "Plutonium reacts with cheese.", "premise_source_doc_id": "Plutonium", "premise_source_doc_line_num": 3, "premise_source_doc_sentence": "It reacts with carbon , halogens , nitrogen , silicon and hydrogen ."}

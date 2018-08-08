@@ -1,0 +1,1 @@
+{"label_logits": [1.5966097116470337, -1.1001298427581787, -1.8694913387298584], "label_probs": [0.9101967215538025, 0.06136999651789665, 0.028433259576559067], "claim": "Akbar was a patron of art.", "premise_source_doc_id": "Akbar", "premise_source_doc_line_num": 10, "premise_source_doc_sentence": "Akbar himself was a patron of art and culture ."}

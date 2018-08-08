@@ -1,0 +1,1 @@
+{"label_logits": [0.5489277839660645, -2.663804531097412, 0.5798983573913574], "label_probs": [0.48269498348236084, 0.019426783546805382, 0.49787822365760803], "claim": "The Narrows is a film.", "premise_source_doc_id": "The_Narrows_-LRB-disambiguation-RRB-", "premise_source_doc_line_num": 74, "premise_source_doc_sentence": "The Narrows  (  film  ) "}

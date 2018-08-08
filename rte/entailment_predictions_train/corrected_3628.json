@@ -1,0 +1,1 @@
+{"label_logits": [0.674126148223877, 0.674474835395813, -3.0116183757781982], "label_probs": [0.49372297525405884, 0.49389517307281494, 0.01238182932138443], "claim": "This Sporting Life was directed by a director born in 1919.", "premise_source_doc_id": "This_Sporting_Life", "premise_source_doc_line_num": 6, "premise_source_doc_sentence": "It was directed by Lindsay Anderson ."}

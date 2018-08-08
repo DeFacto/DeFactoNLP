@@ -1,0 +1,1 @@
+{"label_logits": [2.5440280437469482, 0.20855703949928284, -4.834904670715332], "label_probs": [0.9112537503242493, 0.0881773829460144, 0.0005688653327524662], "claim": "Dave Franco is Tom Franco's brother.", "premise_source_doc_id": "Tom_Franco", "premise_source_doc_line_num": 1, "premise_source_doc_sentence": "Tom Franco is the brother of actors James Franco and Dave Franco ."}

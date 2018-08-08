@@ -1,0 +1,1 @@
+{"label_logits": [-2.8804779052734375, -0.003985237330198288, 1.7629344463348389], "label_probs": [0.008153267204761505, 0.14473603665828705, 0.8471106886863708], "claim": "Newspaper include obituaries.", "premise_source_doc_id": "Old_English_Newsletter", "premise_source_doc_line_num": 6, "premise_source_doc_sentence": "Many issues include obituaries of relevant scholars ."}

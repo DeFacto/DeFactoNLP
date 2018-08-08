@@ -1,0 +1,1 @@
+{"label_logits": [1.5905002355575562, 1.2252894639968872, -4.729058742523193], "label_probs": [0.5896744132041931, 0.4092637598514557, 0.001061848714016378], "claim": "Gwen Stefani won three Grammy Awards in 2010.", "premise_source_doc_id": "Gwen_Stefani", "premise_source_doc_line_num": 14, "premise_source_doc_sentence": "Stefani has won three Grammy Awards ."}

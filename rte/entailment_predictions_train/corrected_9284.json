@@ -1,0 +1,1 @@
+{"label_logits": [-2.9688260555267334, 4.477614402770996, -1.7086200714111328], "label_probs": [0.000581977772526443, 0.9973658919334412, 0.00205214018933475], "claim": "Parting Glances is a car.", "premise_source_doc_id": "Parting_Glances", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Parting Glances is an American film shot in 1984 and released in 1986 ."}

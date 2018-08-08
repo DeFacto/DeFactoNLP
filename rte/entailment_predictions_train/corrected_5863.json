@@ -1,0 +1,1 @@
+{"label_logits": [1.3009461164474487, 2.880617618560791, -6.009705543518066], "label_probs": [0.17082250118255615, 0.8290632963180542, 0.00011417451605666429], "claim": "The Taj Mahal attracts 7-8 million dogs a year.", "premise_source_doc_id": "Taj_Mahal", "premise_source_doc_line_num": 12, "premise_source_doc_sentence": "The Taj Mahal attracts 7 -- 8 million visitors a year ."}

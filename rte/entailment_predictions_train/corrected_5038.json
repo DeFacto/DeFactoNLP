@@ -1,0 +1,1 @@
+{"label_logits": [-1.3924908638000488, -3.0033631324768066, 2.596282958984375], "label_probs": [0.01811976172029972, 0.0036187581717967987, 0.9782614707946777], "claim": "Marlon Brando played Augusto Pinochet.", "premise_source_doc_id": "Augusto", "premise_source_doc_line_num": 31, "premise_source_doc_sentence": "Augusto Pinochet"}

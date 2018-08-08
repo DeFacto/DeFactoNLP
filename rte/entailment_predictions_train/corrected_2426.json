@@ -1,0 +1,1 @@
+{"label_logits": [-1.0868093967437744, 2.8549256324768066, -1.164581537246704], "label_probs": [0.01871500350534916, 0.9639703631401062, 0.01731465384364128], "claim": "Chris Hemsworth is a singer.", "premise_source_doc_id": "Chris_Hemsworth", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Chris Hemsworth  (  born 11 August 1983  )  is an Australian actor ."}

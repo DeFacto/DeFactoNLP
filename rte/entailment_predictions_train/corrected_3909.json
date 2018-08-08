@@ -1,0 +1,1 @@
+{"label_logits": [0.859856903553009, 0.20580822229385376, -3.258646011352539], "label_probs": [0.6509546637535095, 0.33845505118370056, 0.010590283200144768], "claim": "Nitrogen reacts with Plutonium.", "premise_source_doc_id": "Plutonium", "premise_source_doc_line_num": 3, "premise_source_doc_sentence": "It reacts with carbon , halogens , nitrogen , silicon and hydrogen ."}

@@ -1,0 +1,1 @@
+{"label_logits": [-0.6268512606620789, -0.06808584928512573, -0.19455485045909882], "label_probs": [0.2331380546092987, 0.40764477849006653, 0.35921716690063477], "claim": "The Kitti's hog-nosed bat is capable of acting.", "premise_source_doc_id": "Kitti", "premise_source_doc_line_num": 2, "premise_source_doc_sentence": "Kitti 's hog-nosed bat"}

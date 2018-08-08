@@ -1,0 +1,1 @@
+{"label_logits": [1.3429909944534302, 1.2211520671844482, -3.6061275005340576], "label_probs": [0.5284349322319031, 0.4678186774253845, 0.0037464213091880083], "claim": "Led Zeppelin formed in 1868.", "premise_source_doc_id": "Led_Zeppelin", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Led Zeppelin were an English rock band formed in London in 1968 ."}

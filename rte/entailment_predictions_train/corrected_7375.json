@@ -1,0 +1,1 @@
+{"label_logits": [1.5394436120986938, -1.2634848356246948, -1.1209070682525635], "label_probs": [0.8845205903053284, 0.053630467504262924, 0.061848945915699005], "claim": "Robbie Collin is British.", "premise_source_doc_id": "Robbie_Collin", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Robbie Collin is a British film critic ."}

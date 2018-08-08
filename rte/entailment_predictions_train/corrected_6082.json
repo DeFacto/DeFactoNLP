@@ -1,0 +1,1 @@
+{"label_logits": [-1.974901556968689, 0.3740563690662384, 0.546322226524353], "label_probs": [0.04180870205163956, 0.43793144822120667, 0.5202597975730896], "claim": "Twilight is a series by Leigh Bardugo.", "premise_source_doc_id": "Six_of_Crows", "premise_source_doc_line_num": 0, "premise_source_doc_sentence": "Six of Crows is a fantasy novel written by Leigh Bardugo ."}

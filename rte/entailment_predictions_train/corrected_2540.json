@@ -1,0 +1,1 @@
+{"label_logits": [1.4088131189346313, 0.3695937693119049, -3.4784090518951416], "label_probs": [0.7346065044403076, 0.25985288619995117, 0.005540654994547367], "claim": "Plutonium reacts with zinc.", "premise_source_doc_id": "Plutonium", "premise_source_doc_line_num": 3, "premise_source_doc_sentence": "It reacts with carbon , halogens , nitrogen , silicon and hydrogen ."}
