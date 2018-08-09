@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python -m allennlp.run predict ./snli_output/model.tar.gz  ./snli_data/testSet_rte.jsonl --output-file predictions_rte.json --silent
+python -m allennlp.run predict ./snli_output/model.tar.gz  ./fever_data/test_fever_snliFormat.jsonl --output-file predictions_rte_fever_testSet.json --silent
