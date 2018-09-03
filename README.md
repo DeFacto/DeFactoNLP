@@ -1,6 +1,6 @@
 # DeFactoNLP
 
-DeFactoNLP is an automated fact-checking system designed for the FEVER 2018 Shared Task being held at EMNLP 2018. It is capable of verifying claims and retrieving sentences from Wikipedia which support the assessment. This is accomplished through the usage of named entity recognition, TF-IDF vector comparison and decomposable attention models.
+DeFactoNLP is an automated fact-checking system designed for the FEVER 2018 Shared Task which was held at EMNLP 2018. It is capable of verifying claims and retrieving sentences from Wikipedia which support the assessment. This is accomplished through the usage of named entity recognition, TF-IDF vector comparison and decomposable attention models.
 
 If you use this code, please cite:
 
