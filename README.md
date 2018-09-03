@@ -5,5 +5,10 @@ DeFactoNLP is an automated fact-checking system designed for the FEVER 2018 Shar
 If you use this code, please cite:
 
 ```
-@inproceedings{reddy_rocha_esteves, title={DeFactoNLP: Fact Verification using Entity Recognition, TFIDF Vector Comparison and Decomposable Attention}, publisher={FEVER 2018, organised under EMNLP 2018}, author={Reddy, Aniketh Janardhan and Rocha, Gil and Esteves, Diego}}
+@inproceedings{reddy_rocha_esteves, 
+title={DeFactoNLP: Fact Verification using Entity Recognition, TFIDF Vector Comparison and Decomposable Attention}, 
+publisher={FEVER 2018, organised under EMNLP 2018}, 
+author={Reddy, Aniketh Janardhan and Rocha, Gil and Esteves, Diego},
+year={2018}
+}
 ```
