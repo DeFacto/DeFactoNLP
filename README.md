@@ -1,8 +1,9 @@
-# fever
+# DeFactoNLP
 
-Useful links:
-1. Codalab evaluation link - https://competitions.codalab.org/competitions/18814
-2. FEVER scorer GitHub repo - https://github.com/sheffieldnlp/fever-scorer
-3. Original paper - https://arxiv.org/abs/1803.05355
-4. FEVER baseline - https://github.com/sheffieldnlp/fever-baselines
-5. Shared task description - http://fever.ai/task.html
+DeFactoNLP is an automated fact-checking system designed for the FEVER 2018 Shared Task being held at EMNLP 2018. It is capable of verifying claims and retrieving sentences from Wikipedia which support the assessment. This is accomplished through the usage of named entity recognition, TF-IDF vector comparison and decomposable attention models.
+
+If you use this code, please cite:
+
+```
+@inproceedings{reddy_rocha_esteves, title={DeFactoNLP: Fact Verification using Entity Recognition, TFIDF Vector Comparison and Decomposable Attention}, publisher={FEVER 2018, organised under EMNLP 2018}, author={Reddy, Aniketh Janardhan and Rocha, Gil and Esteves, Diego}}
+```
