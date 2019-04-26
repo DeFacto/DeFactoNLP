@@ -20,7 +20,7 @@ wiki_split_docs_dir = "data/wiki-pages/wiki-pages-split"
 test_file = jsonlines.open(test_file)
 test_set = []
 
-claim_id = 14001
+claim_id = 1
 
 wiki_entities = os.listdir(wiki_split_docs_dir)
 for i in range(len(wiki_entities)):
@@ -36,7 +36,7 @@ for lines in test_file:
 	test_set.append(lines)
 
 with jsonlines.open(results_file, mode='w') as writer:
-	for example in test_set[14000:]:
+	for example in test_set:
 		relevant_docs,entities = doc_retrieval.getRelevantDocs(example['claim'],wiki_entities,"StanfordNER",nlp)
 		relevant_docs = list(set(relevant_docs))
 		print(example['claim'])
