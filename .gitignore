@@ -7,3 +7,4 @@ testSet_rte.jsonl
 fever-baselines/data/
 fever-baselines/glove.6B.zip
 list_of_Wikipedia_files.txt
+.idea/
