@@ -1,6 +1,5 @@
 data/wiki-pages/
-data/wiki-pages-split/*
-!data/wiki-pages-split/.gitadd
+data/wiki-pages-split/
 data/fever-data/
 data/wiki-pages.zip
 __pycache__
