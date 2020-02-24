@@ -30,6 +30,11 @@ for file in files:
 
 		if len(page["text"]) > 0:
 			count = count + 1
+
+			new_file = codecs.open(dest_dir + "/" + page['id'] + ".json", "w+", "utf-8")
+
+			linesList = []
+
 			for line in doc_splitted_lines:
 				numLines = numLines + 1
 
@@ -37,18 +42,25 @@ for file in files:
 				#	SENTENCE_ID\t SENTENCE_TEXT\t NAMED_ENTITY1\t NAMED_ENTITY2
 
 				splittedSentence = line.split("\t")
+
 				if len(splittedSentence) >= 3:
-					# linesList.append({"content": splittedSentence[1], "namedEntitiesList": splittedSentence[2:]})
+					linesList.append({"content": splittedSentence[1], "namedEntitiesList": splittedSentence[2:]})
 					numEntities = numEntities + len(splittedSentence)
+
 				elif len(splittedSentence) == 2:
-					# linesList.append({"content": splittedSentence[1], "namedEntitiesList": []})
+					linesList.append({"content": splittedSentence[1], "namedEntitiesList": []})
 					numEntities = numEntities + len(splittedSentence)
+
 				else:
 					# TODO: this happened at least one time -> this happens when a line does not contain an id and does not contain the symbol "\t". What should be done? For now, ignore it!
 					print("[WARNING] Article " + page['id'] + " found on the file " + str(
 						file) + "contains text without id!")
 					emptyEntities = emptyEntities + 1
 					continue
+
+			json.dump({"text": page['text'], "lines": linesList}, new_file)
+			new_file.close()
+
 		else:
 			print("[WARNING] Article " + page['id'] + " is empty!")
 			emptyPagesCounter = emptyPagesCounter + 1
