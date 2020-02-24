@@ -188,7 +188,7 @@ def predict_test(predictions_test,entailment_predictions_test,new_predictions_fi
 
 predictions_train = "predictions_train.jsonl"
 predictions_test = "predictions.jsonl"
-new_predictions_file = "new_predictions.jsonl"
+new_predictions_file = "predictions/new_predictions.jsonl"
 
 gold_train = "data/subsample_train_relevant_docs.jsonl"
 entailment_predictions_train = "rte/entailment_predictions_train"

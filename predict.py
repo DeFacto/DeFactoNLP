@@ -11,8 +11,8 @@ import unicodedata as ud
 
 nlp = spacy.load('en_core_web_lg')
 
-test_file = "data/shared_task_dev_public_relevant_docs.jsonl"
-results_file = "predictions_dev.jsonl"
+test_file = "data/dev.jsonl"
+results_file = "predictions/predictions_dev_sanity.jsonl"
 
 wiki_dir = 'data/wiki-pages/wiki-pages'
 wiki_split_docs_dir = "data/wiki-pages/wiki-pages-split"

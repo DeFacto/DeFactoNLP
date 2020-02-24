@@ -12,7 +12,7 @@ nlp = spacy.load('en_core_web_lg')
 train_file = "data/train.jsonl"
 test_file = "data/shared_task_dev_public.jsonl"
 dev_file = "data/dev.jsonl"
-results_file = "predictions.jsonl"
+results_file = "predictions/predictions.jsonl"
 
 wiki_dir = 'data/wiki-pages/wiki-pages'
 wiki_split_docs_dir = "data/wiki-pages/wiki-pages-split"
