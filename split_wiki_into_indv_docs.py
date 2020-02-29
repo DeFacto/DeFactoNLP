@@ -5,7 +5,7 @@ import json
 import datetime
 
 wiki_folder = 'data/wiki-pages'
-dest_dir = "data/wiki-pages-split"
+dest_dir = "../wiki-pages-split"
 files = os.listdir(wiki_folder)
 
 count = 0
