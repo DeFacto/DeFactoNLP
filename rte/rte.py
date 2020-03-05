@@ -65,9 +65,9 @@ def determinePredictedLabel(preds):
         [len(nonePredictions), len(supportPredictions), len(contradictionPredictions)])
     mostCommonPrediction = np.argmax(numberOfPredictionsPerLabel)
 
-    if mostCommonPrediction == 0:
+    if mostCommonPrediction == 1:
         return (0, supportPredictions)
-    elif mostCommonPrediction == 1:
+    elif mostCommonPrediction == 2:
         return (1, contradictionPredictions)
     else:
         return (2, [])

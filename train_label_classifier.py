@@ -189,8 +189,8 @@ def predict_test(predictions_test, entailment_predictions_test, new_predictions_
             i += 1
 
 
-predictions_train = "predictions_train.jsonl"
-predictions_test = "predictions.jsonl"
+predictions_train = "predictions/predictions_train.jsonl"
+predictions_test = "predictions/predictions.jsonl"
 new_predictions_file = "predictions/new_predictions.jsonl"
 
 gold_train = "data/subsample_train_relevant_docs.jsonl"
@@ -220,7 +220,7 @@ clf = RandomForestClassifier(max_depth=3, n_estimators=50, criterion="entropy")
 # clf= Pipeline([('scaler', MinMaxScaler()), ('clf', svm.SVC())])
 
 clf.fit(x_train, y_train)
-
+print("Fit Done")
 joblib.dump(clf, 'label_classifier.pkl')
 # clf = joblib.load('filename.pkl')
 
