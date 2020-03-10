@@ -46,7 +46,7 @@ stop = 0
 id : id of the claim
 verifiable : boolean of 1 and 0 with respective meaning
 docs : set of documents that verify the claim
-docs_sep : set of documents seperated
+docs_sep : set of documents separated
 evidences: list of tuples of <doc, line>
 difficulties: list of the number of sentences needed to be evidence
 '''
@@ -64,7 +64,7 @@ for claim in train_set:
 
     # get gold inputs
     gold_documents = set()
-    gold_documents_seperated = set()
+    gold_documents_separated = set()
     sentences_pair = set()
     evidences = claim['evidence']
     difficulties = []
@@ -76,12 +76,12 @@ for claim in train_set:
                 doc_name += str(e[2])
                 doc_name += " "
                 sentences_pair.add((str(e[2]), str(e[3])))  # add gold sentences
-                gold_documents_seperated.add(str(e[2]))  # add the document
+                gold_documents_separated.add(str(e[2]))  # add the document
                 difficulty += 1
             doc_name = doc_name[:-1]  # erase the last blank space
         else:
             doc_name = str(evidence[0][2])
-            gold_documents_seperated.add(str(evidence[0][2]))
+            gold_documents_separated.add(str(evidence[0][2]))
             sentences_pair.add((str(evidence[0][2]), str(evidence[0][3])))
             difficulty = 1
         difficulties.append(difficulty)
@@ -89,7 +89,7 @@ for claim in train_set:
     gold_dict['difficulties'] = difficulties
     gold_dict['docs'] = gold_documents
     gold_dict['evidences'] = sentences_pair
-    gold_dict['docs_sep'] = gold_documents_seperated
+    gold_dict['docs_sep'] = gold_documents_separated
 
     gold_data.append(gold_dict)
 
@@ -194,9 +194,6 @@ for claim in train_relevant:
     if stop == -1:
         break
 
-# scores from fever
-results = fever_score(train_prediction, actual = train_set)
-
 precision_correct /= total_claim
 precision_incorrect /= total_claim
 recall_correct /= total_claim
@@ -213,7 +210,6 @@ print("Recall (Relevant Documents):\t\t\t\t\t\t " + str(recall_correct))  # reca
 print("Percentage of gold documents NOT found:\t\t\t\t " + str(recall_incorrect))  # recall
 print("Fall-out: " + str(specificity))
 print("Percentage of at least one document found correctly: " + str(doc_found))  # recall
-
 
 precision_sent_correct /= total_claim
 precision_sent_incorrect /= total_claim
@@ -234,6 +230,9 @@ print("Percentage of at least one Sentence found correctly: " + str(sent_found))
 print("Percentage of at least one Sentence found correctly: " + str(sent_found_if_doc_found))  # recall
 print("Percentage of at least one Sentence found correctly: " + str(another_sent))  # recall
 
+# scores from fever
+results = fever_score(train_prediction, actual=train_set)
+
 print("\n#########")
 print("# FEVER #")
 print("#########")
@@ -242,4 +241,3 @@ print("Acc_score: \t\t\t" + str(results[1]))
 print("Precision: \t\t\t" + str(results[2]))
 print("Recall: \t\t\t" + str(results[3]))
 print("F1-Score: \t\t\t" + str(results[4]))
-
