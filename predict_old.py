@@ -3,17 +3,25 @@ import json
 import doc_retrieval
 import sentence_retrieval
 import rte.rte as rte
-import utilities
 import spacy
 import os
 import codecs
 import unicodedata as ud
+import sys
+
+if len(sys.argv)-1 == 3:
+    test_file = sys.argv[1]
+    results_file = sys.argv[2]
+    concatenate_file = sys.argv[3]
+else:
+    print("#" * 10)
+    print("Parameters should be:\n test_file\n results_file \n concatenate_file\nDefaults being used\n")
+    print("#" * 10)
+    test_file = "data/subsample_train_relevant_docs.jsonl"
+    results_file = "predictions_sanity.jsonl"
+    concatenate_file = "data/subsample_train_concatenation.jsonl"
 
 nlp = spacy.load('en_core_web_lg')
-
-test_file = "data/subsample_train_relevant_docs.jsonl"
-results_file = "predictions_sanity.jsonl"
-concatenate_file = "data/subsample_train_concatenation.jsonl"
 
 wiki_dir = "data/wiki-pages/wiki-pages"
 wiki_split_docs_dir = "../wiki-pages-split"
