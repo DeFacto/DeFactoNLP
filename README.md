@@ -16,7 +16,7 @@ year={2018}
 * Don't forget to check all *PATHS* in every script all the time
 * Don't run the RTE model before training the Random Forest model.
 
-##RUN:
+## RUN:
 1. Download Fever Data in fever-baselines/scripts/  
  run script: _download-raw-wiki.sh_  
  move to folder wiki-pages inside the data file that is already created.
