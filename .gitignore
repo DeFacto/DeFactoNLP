@@ -11,6 +11,3 @@ fever-baselines/glove.6B.zip
 list_of_Wikipedia_files.txt
 .idea/
 rte/entailment_predictions/
-rte/entailment_predictions_test/*
-rte/entailment_predictions_train/*
-*/claim_*
