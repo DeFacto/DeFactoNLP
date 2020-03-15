@@ -1,7 +1,9 @@
 from metrics.evidence import Evidence
+from collections import defaultdict
 
 
 class Claim:
+    id_index = defaultdict(list)
 
     def __init__(self, _id, name, verifiable):
         self.id = _id
@@ -11,6 +13,7 @@ class Claim:
         else:
             self.verifiable = 0
         self.gold_evidence = []
+        Claim.id_index[_id].append(self)
 
     def add_gold_evidence(self, document, evidence, line_num):
         evidence = Evidence(document, evidence, line_num)
@@ -31,3 +34,7 @@ class Claim:
         for e in self.gold_evidence:
             docs |= e.documents
         return docs
+
+    @classmethod
+    def find_by_id(cls, _id):
+        return Claim.id_index[_id]

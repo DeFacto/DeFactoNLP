@@ -41,16 +41,6 @@ for lines in train_concatenate_file:
     lines['claim'] = lines['claim'].replace("-RRB-", " ) ")
     train_concatenate.append(lines)
 
-# this evidence addition is irrelevant
-info_by_id = dict((d['id'], dict(d, index=index)) for (index, d) in enumerate(train_set))
-for lines in train_predictions_file:
-    #print(lines['id'])
-    lines['evidence'] = info_by_id.get(lines['id'])['evidence']
-    train_prediction.append(lines)
-
-# All claims
-stop = 0
-
 # List with dicts with all important data
 '''
 id : id of the claim
@@ -93,10 +83,11 @@ sent_found_if_doc_found = 0
 total_claim = 0
 for claim in train_relevant:
     _id = claim['id']
-    gold_dict = gold_data.get(_id)
+    _claim = Claim.find_by_id(_id)[0]
 
     # no search is needed... no information on gold dict about retrieval
-    if not gold_dict['verifiable']:
+    print(_claim.id)
+    if not _claim.verifiable:
         continue
 
     # document analysis
