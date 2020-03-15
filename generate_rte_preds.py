@@ -30,7 +30,7 @@ for line in relevant_sentences_file:
     instances.append(line)
 
 
-def createTestSet(claim, candidateEvidences, claim_num):
+def create_test_set(claim, candidateEvidences, claim_num):
     testset = []
     for elem in candidateEvidences:
         testset.append({"hypothesis": claim, "premise": elem})
@@ -39,8 +39,8 @@ def createTestSet(claim, candidateEvidences, claim_num):
 
 def run_rte(claim, evidence, claim_num):
     fname = "claim_" + str(claim_num) + ".json"
-    testset = createTestSet(claim, evidence, claim_num)
-    preds = predictor.predict_batch_json(testset)
+    test_set = create_test_set(claim, evidence, claim_num)
+    preds = predictor.predict_batch_json(test_set)
     return preds
 
 
@@ -50,9 +50,8 @@ for i in range(len(instances)):
     evidence = instances[i]['predicted_sentences']
     potential_evidence_sentences = []
     for sentence in evidence:
-        #print(sentence)
-        #print(sentence[0])
-
+        # print(sentence)
+        # print(sentence[0])
         # load document from TF-IDF
         relevant_doc = ud.normalize('NFC', sentence[0])
         relevant_doc = relevant_doc.replace("/", "-SLH-")
@@ -74,13 +73,14 @@ for i in range(len(instances)):
     if len(potential_evidence_sentences) == 0:
         zero_results += 1
         potential_evidence_sentences.append("Nothing")
+        evidence.append(["Nothing", 0])
 
     preds = run_rte(claim, potential_evidence_sentences, claim_num)
 
     saveFile = codecs.open("rte/entailment_predictions/claim_" + str(claim_num) + ".json", mode="w+", encoding="utf-8")
     for i in range(len(preds)):
-        #print(preds)
-        #print(evidence)
+        # print(preds)
+        # print(evidence)
         preds[i]['claim'] = claim
         preds[i]['premise_source_doc_id'] = evidence[i][0]
         preds[i]['premise_source_doc_line_num'] = evidence[i][1]

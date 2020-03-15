@@ -1,11 +1,20 @@
 import jsonlines
 import sys
 from scorer import fever_score
+from metrics.claim import Claim
+
+claims = []
 
 train_file = "data/subsample_train.jsonl"
 train_relevant_file = "data/subsample_train_relevant_docs.jsonl"
 train_concatenate_file = "data/subsample_train_concatenation.jsonl"
 train_predictions_file = "predictions/predictions_train.jsonl"
+
+# loading for dev
+train_file = "data/dev.jsonl"
+train_relevant_file = "data/dev_relevant_docs.jsonl"
+train_concatenate_file = "data/subsample_train_concatenation.jsonl"
+train_predictions_file = "predictions/new_predictions_dev.jsonl"
 
 train_file = jsonlines.open(train_file)
 train_relevant_file = jsonlines.open(train_relevant_file)
@@ -35,6 +44,7 @@ for lines in train_concatenate_file:
 # this evidence addition is irrelevant
 info_by_id = dict((d['id'], dict(d, index=index)) for (index, d) in enumerate(train_set))
 for lines in train_predictions_file:
+    #print(lines['id'])
     lines['evidence'] = info_by_id.get(lines['id'])['evidence']
     train_prediction.append(lines)
 
@@ -53,50 +63,10 @@ difficulties: list of the number of sentences needed to be evidence
 gold_data = []
 
 for claim in train_set:
-
-    # init gold dict
-    gold_dict = {'id': claim['id']}
-
-    if claim['verifiable'] == "VERIFIABLE":
-        gold_dict['verifiable'] = 1
-    else:
-        gold_dict['verifiable'] = 0
-
-    # get gold inputs
-    gold_documents = set()
-    gold_documents_separated = set()
-    sentences_pair = set()
-    evidences = claim['evidence']
-    difficulties = []
-    for evidence in evidences:
-        doc_name = ''
-        difficulty = 0
-        if len(evidence) > 1:  # needs more than 1 doc to be verifiable
-            for e in evidence:
-                doc_name += str(e[2])
-                doc_name += " "
-                sentences_pair.add((str(e[2]), str(e[3])))  # add gold sentences
-                gold_documents_separated.add(str(e[2]))  # add the document
-                difficulty += 1
-            doc_name = doc_name[:-1]  # erase the last blank space
-        else:
-            doc_name = str(evidence[0][2])
-            gold_documents_separated.add(str(evidence[0][2]))
-            sentences_pair.add((str(evidence[0][2]), str(evidence[0][3])))
-            difficulty = 1
-        difficulties.append(difficulty)
-        gold_documents.add(doc_name)
-    gold_dict['difficulties'] = difficulties
-    gold_dict['docs'] = gold_documents
-    gold_dict['evidences'] = sentences_pair
-    gold_dict['docs_sep'] = gold_documents_separated
-
-    gold_data.append(gold_dict)
-
-    # flag to stop if needed
-    stop += 1
-    if stop == -1:
-        break
+    _claim = Claim(claim['id'], claim['claim'], claim['verifiable'])
+    _claim.add_gold_evidences(claim['evidence'])
+    claims.append(_claim)
+    # print(_claim.get_gold_documents())
 
 gold_data = dict((item['id'], item) for item in gold_data)
 
@@ -144,8 +114,8 @@ for claim in train_relevant:
             doc_incorrect += 1
         docs.add(doc)
 
-    precision_correct += doc_correct / len(docs)
-    precision_incorrect += doc_incorrect / len(docs)
+    precision_correct += doc_correct / (len(docs) + 0.0001)
+    precision_incorrect += doc_incorrect / (len(docs) + 0.0001)
     recall_correct += doc_correct / len(gold_docs)
     recall_incorrect += doc_incorrect / len(gold_docs)
 
@@ -180,8 +150,8 @@ for claim in train_relevant:
     if doc_correct and flag:
         sent_found_if_doc_found += 1
 
-    precision_sent_correct += sent_correct / len(sentences)
-    precision_sent_incorrect += sent_incorrect / len(sentences)
+    precision_sent_correct += sent_correct / (len(sentences) + 0.00001)
+    precision_sent_incorrect += sent_incorrect / (len(sentences) + 0.00001)
     recall_sent_correct += sent_correct / len(evidences)
     recall_sent_incorrect += sent_incorrect / len(evidences)
 
@@ -204,11 +174,11 @@ doc_found /= total_claim
 print("\n#############")
 print("# DOCUMENTS #")
 print("#############")
-print("Precision (Document Retrieved):\t\t\t\t\t\t " + str(precision_correct))  # precision
-print("Fall-out (incorrect documents):\t\t\t\t\t\t " + str(precision_incorrect))  # precision
-print("Recall (Relevant Documents):\t\t\t\t\t\t " + str(recall_correct))  # recall
-print("Percentage of gold documents NOT found:\t\t\t\t " + str(recall_incorrect))  # recall
-print("Fall-out: " + str(specificity))
+print("Precision (Document Retrieved):\t\t\t " + str(precision_correct))  # precision
+print("Fall-out (incorrect documents):\t\t\t " + str(precision_incorrect))  # precision
+print("Recall (Relevant Documents):\t\t\t " + str(recall_correct))  # recall
+print("Percentage of gold documents NOT found:\t\t " + str(recall_incorrect))  # recall
+print("Fall-out:\t\t\t\t\t " + str(specificity))
 print("Percentage of at least one document found correctly: " + str(doc_found))  # recall
 
 precision_sent_correct /= total_claim
@@ -222,10 +192,10 @@ another_sent = sent_found_if_doc_found / doc_found
 print("\n#############")
 print("# SENTENCES #")
 print("#############")
-print("Precision (Sentences Retrieved):\t\t\t\t\t " + str(precision_sent_correct))  # precision
-print("Precision (incorrect Sentences):\t\t\t\t\t " + str(precision_sent_incorrect))  # precision
-print("Recall (Relevant Sentences):\t\t\t\t\t\t " + str(recall_sent_correct))  # recall
-print("Percentage of gold Sentences NOT found:\t\t\t\t " + str(recall_sent_incorrect))  # recall
+print("Precision (Sentences Retrieved):\t\t\t " + str(precision_sent_correct))  # precision
+print("Precision (incorrect Sentences):\t\t\t " + str(precision_sent_incorrect))  # precision
+print("Recall (Relevant Sentences):\t\t\t\t " + str(recall_sent_correct))  # recall
+print("Percentage of gold Sentences NOT found:\t\t " + str(recall_sent_incorrect))  # recall
 print("Percentage of at least one Sentence found correctly: " + str(sent_found))  # recall
 print("Percentage of at least one Sentence found correctly: " + str(sent_found_if_doc_found))  # recall
 print("Percentage of at least one Sentence found correctly: " + str(another_sent))  # recall
@@ -236,7 +206,7 @@ results = fever_score(train_prediction, actual=train_set)
 print("\n#########")
 print("# FEVER #")
 print("#########")
-print("Strict_score: \t\t" + str(results[0]))
+print("Strict_score: \t\t\t" + str(results[0]))
 print("Acc_score: \t\t\t" + str(results[1]))
 print("Precision: \t\t\t" + str(results[2]))
 print("Recall: \t\t\t" + str(results[3]))

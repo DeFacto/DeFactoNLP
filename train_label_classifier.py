@@ -190,12 +190,13 @@ def predict_test(predictions_test, entailment_predictions_test, new_predictions_
 
 
 predictions_train = "predictions/predictions_train.jsonl"
-predictions_test = "predictions/predictions.jsonl"
-new_predictions_file = "predictions/new_predictions.jsonl"
 
 gold_train = "data/subsample_train_relevant_docs.jsonl"
 entailment_predictions_train = "rte/entailment_predictions_train"
-entailment_predictions_test = "rte/entailment_predictions_test"
+
+predictions_test = "data/dev.jsonl"
+entailment_predictions_test = "rte/entailment_predictions"
+new_predictions_file = "predictions/new_predictions_dev.jsonl"
 
 x_train, y_train = populate_train(gold_train, entailment_predictions_train)
 # x_test = x_train[7000:]
