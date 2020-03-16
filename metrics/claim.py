@@ -37,7 +37,7 @@ class Claim:
 
     def add_predicted_sentences(self, pairs):
         for pair in pairs:
-            e = Evidence(str(pair[0]), str(pair[1]))
+            e = str(pair[0]), str(pair[1])
             self.predicted_evidence.append(e)
 
     def get_gold_documents(self):
@@ -46,7 +46,13 @@ class Claim:
             docs |= e.documents
         return docs
 
-    def calculate_corrected_docs(self, difficulty="all"):
+    def get_gold_pairs(self):
+        pairs = set()
+        for e in self.gold_evidence:
+            pairs |= e.pairs
+        return pairs
+
+    def calculate_correct_docs(self, difficulty="all"):
         num_corr_docs = 0
         num_incorr_docs = 0
         gold_docs = self.get_gold_documents()
@@ -57,6 +63,22 @@ class Claim:
                 else:
                     num_incorr_docs += 1
         return num_corr_docs, num_incorr_docs
+
+    def calculate_correct_sentences(self, difficulty="all"):
+        num_corr_e = 0
+        gold_pairs = self.get_gold_pairs()
+        if difficulty == "all":
+            for e in self.predicted_evidence:
+                if e in gold_pairs:
+                    num_corr_e += 1
+        return num_corr_e
+
+    def check_evidence_found_doc(self):
+        gold_docs = self.get_gold_documents()
+        for doc in self.predicted_docs:
+            if doc in gold_docs:
+                return True
+        return False
 
     @classmethod
     def find_by_id(cls, _id):
@@ -72,7 +94,7 @@ class Claim:
             if not claim.verifiable:
                 continue
             total_claims += 1
-            doc_correct, doc_incorrect = claim.calculate_corrected_docs(difficulty="all")
+            doc_correct, doc_incorrect = claim.calculate_correct_docs(difficulty="all")
 
             precision_correct += doc_correct / (len(claim.predicted_docs) + 0.000001)
             recall_correct += doc_correct / (len(claim.get_gold_documents()) + 0.000001)
@@ -81,3 +103,36 @@ class Claim:
         recall_correct /= total_claims
 
         return precision_correct, recall_correct
+
+    @classmethod
+    def evidence_extraction_stats(cls, claims):
+        precision_sent_correct = 0
+        recall_sent_correct = 0
+        total_claims = 0
+
+        precision_doc_sent_correct = 0
+        recall_doc_sent_correct = 0
+        total_claims_doc_found = 0
+
+        for claim in claims:
+            if not claim.verifiable:
+                continue
+
+            total_claims += 1
+            sent_correct = claim.calculate_correct_sentences(difficulty="all")
+
+            precision_sent_correct += sent_correct / (len(claim.predicted_evidence) + 0.000001)
+            recall_sent_correct += sent_correct / (len(claim.get_gold_pairs()) + 0.000001)
+
+            if claim.check_evidence_found_doc():
+                precision_doc_sent_correct += sent_correct / (len(claim.predicted_evidence) + 0.000001)
+                recall_doc_sent_correct += sent_correct / (len(claim.get_gold_pairs()) + 0.000001)
+                total_claims_doc_found += 1
+
+        precision_sent_correct /= total_claims
+        recall_sent_correct /= total_claims
+
+        precision_doc_sent_correct /= total_claims_doc_found
+        recall_doc_sent_correct /= total_claims_doc_found
+
+        return precision_sent_correct, recall_sent_correct, precision_doc_sent_correct, recall_doc_sent_correct
