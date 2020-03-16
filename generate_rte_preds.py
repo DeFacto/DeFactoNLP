@@ -70,6 +70,7 @@ for i in range(len(instances)):
         potential_evidence_sentences.append(lines[sentence[1]])
 
     # Just adding a check
+    # This is needed in case nothing was predicted
     if len(potential_evidence_sentences) == 0:
         zero_results += 1
         potential_evidence_sentences.append("Nothing")
