@@ -74,6 +74,15 @@ for claim in train_relevant:
     _claim.add_predicted_docs(claim['predicted_pages'])
     _claim.add_predicted_sentences(claim['predicted_sentences'])
 
+results = Claim.document_retrieval_stats(claims)
+
+print("\n############")
+print("# DOCUMENTS #")
+print("#############")
+print("Precision (Document Retrieved): \t" + str(results[0]))
+print("Recall (Relevant Documents): \t\t" + str(results[1]))
+
+
 # scores from fever
 results = fever_score(train_prediction, actual=train_set)
 

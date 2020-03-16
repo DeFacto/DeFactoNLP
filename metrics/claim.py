@@ -46,6 +46,38 @@ class Claim:
             docs |= e.documents
         return docs
 
+    def calculate_corrected_docs(self, difficulty="all"):
+        num_corr_docs = 0
+        num_incorr_docs = 0
+        gold_docs = self.get_gold_documents()
+        if difficulty == "all":
+            for doc in self.predicted_docs:
+                if doc in gold_docs:
+                    num_corr_docs += 1
+                else:
+                    num_incorr_docs += 1
+        return num_corr_docs, num_incorr_docs
+
     @classmethod
     def find_by_id(cls, _id):
         return Claim.id_index[_id]
+
+    @classmethod
+    def document_retrieval_stats(cls, claims):
+        precision_correct = 0
+        recall_correct = 0
+        total_claims = 0
+
+        for claim in claims:
+            if not claim.verifiable:
+                continue
+            total_claims += 1
+            doc_correct, doc_incorrect = claim.calculate_corrected_docs(difficulty="all")
+
+            precision_correct += doc_correct / (len(claim.predicted_docs) + 0.000001)
+            recall_correct += doc_correct / (len(claim.get_gold_documents()) + 0.000001)
+
+        precision_correct /= total_claims
+        recall_correct /= total_claims
+
+        return precision_correct, recall_correct
