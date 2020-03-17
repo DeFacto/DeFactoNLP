@@ -84,11 +84,27 @@ for claim in train_concatenate:
     _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
     _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
 
-results = Claim.document_retrieval_stats(claims)
+results = Claim.document_retrieval_stats(claims, _type="tfidf")
 
-print("\n############")
-print("# DOCUMENTS #")
-print("#############")
+print("\n########################")
+print("# Documents Only TFIDF #")
+print("########################")
+print("Precision (Document Retrieved): \t" + str(results[0]))
+print("Recall (Relevant Documents): \t\t" + str(results[1]))
+
+results = Claim.document_retrieval_stats(claims, _type="ner")
+
+print("\n######################")
+print("# Documents Only NER #")
+print("########################")
+print("Precision (Document Retrieved): \t" + str(results[0]))
+print("Recall (Relevant Documents): \t\t" + str(results[1]))
+
+results = Claim.document_retrieval_stats(claims, _type="all")
+
+print("\n######################")
+print("# Documents for BOTH #")
+print("######################")
 print("Precision (Document Retrieved): \t" + str(results[0]))
 print("Recall (Relevant Documents): \t\t" + str(results[1]))
 

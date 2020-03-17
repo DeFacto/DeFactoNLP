@@ -63,6 +63,19 @@ class Claim:
             pairs |= e.pairs
         return pairs
 
+    def get_predicted_documents(self, _type="tfidf"):
+        if _type == "tfidf":
+            return self.predicted_docs
+        if _type == "ner":
+            return self.predicted_docs_ner
+        else:
+            documents = set()
+            for doc in self.predicted_docs:
+                documents.add(doc)
+            for doc in self.predicted_docs_ner:
+                documents.add(doc)
+            return documents
+
     def get_predicted_evidence(self, _type="tfidf"):
         if _type == "tfidf":
             return self.predicted_evidence
@@ -76,12 +89,12 @@ class Claim:
                 evidences.add(e)
             return evidences
 
-    def calculate_correct_docs(self, difficulty="all"):
+    def calculate_correct_docs(self, difficulty="all", _type="tfidf"):
         num_corr_docs = 0
         num_incorr_docs = 0
         gold_docs = self.get_gold_documents()
         if difficulty == "all":
-            for doc in self.predicted_docs:
+            for doc in self.get_predicted_documents(_type=_type):
                 if doc in gold_docs:
                     num_corr_docs += 1
                 else:
@@ -92,18 +105,9 @@ class Claim:
         num_corr_e = 0
         gold_pairs = self.get_gold_pairs()
         if difficulty == "all":
-            if _type == "ner":
-                for e in self.predicted_evidence_ner:
-                    if e in gold_pairs:
-                        num_corr_e += 1
-            elif _type == "tfidf":
-                for e in self.predicted_evidence:
-                    if e in gold_pairs:
-                        num_corr_e += 1
-            else:
-                for e in self.get_predicted_evidence(_type=_type):
-                    if e in gold_pairs:
-                        num_corr_e += 1
+            for e in self.get_predicted_evidence(_type=_type):
+                if e in gold_pairs:
+                    num_corr_e += 1
         return num_corr_e
 
     def check_evidence_found_doc(self, _type="tfidf"):
@@ -132,7 +136,7 @@ class Claim:
         return Claim.id_index[_id]
 
     @classmethod
-    def document_retrieval_stats(cls, claims):
+    def document_retrieval_stats(cls, claims, _type="tfidf"):
         precision_correct = 0
         recall_correct = 0
         total_claims = 0
@@ -141,9 +145,9 @@ class Claim:
             if not claim.verifiable:
                 continue
             total_claims += 1
-            doc_correct, doc_incorrect = claim.calculate_correct_docs(difficulty="all")
+            doc_correct, doc_incorrect = claim.calculate_correct_docs(difficulty="all", _type=_type)
 
-            precision_correct += doc_correct / (len(claim.predicted_docs) + 0.000001)
+            precision_correct += doc_correct / (len(claim.get_predicted_documents(_type=_type)) + 0.000001)
             recall_correct += doc_correct / (len(claim.get_gold_documents()) + 0.000001)
 
         precision_correct /= total_claims
