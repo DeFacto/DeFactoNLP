@@ -19,7 +19,7 @@ if len(sys.argv) - 1 == 1:
     else:  # type_file == 'dev':
         train_file = "data/dev.jsonl"
         train_relevant_file = "data/dev_relevant_docs.jsonl"
-        train_concatenate_file = "data/subsample_train_concatenation.jsonl"
+        train_concatenate_file = "data/dev_concatenation.jsonl"
         train_predictions_file = "predictions/new_predictions_dev.jsonl"
 else:
     print("Needs to have one argument. Choose:")
@@ -74,6 +74,16 @@ for claim in train_relevant:
     _claim.add_predicted_docs(claim['predicted_pages'])
     _claim.add_predicted_sentences(claim['predicted_sentences'])
 
+for claim in train_concatenate:
+    _id = claim['id']
+    _claim = Claim.find_by_id(_id)[0]
+
+    if not _claim.verifiable:
+        continue
+
+    _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
+    _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
+
 results = Claim.document_retrieval_stats(claims)
 
 print("\n############")
@@ -82,11 +92,33 @@ print("#############")
 print("Precision (Document Retrieved): \t" + str(results[0]))
 print("Recall (Relevant Documents): \t\t" + str(results[1]))
 
-results = Claim.evidence_extraction_stats(claims)
+results = Claim.evidence_extraction_stats(claims, _type="tfidf")
 
-print("\n############")
-print("# EVIDENCES #")
-print("#############")
+print("\n#################################")
+print("# Possible Sentences Only TFIDF #")
+print("#################################")
+print("Precision (Sentences Retrieved): \t" + str(results[0]))
+print("Recall (Relevant Sentences): \t\t" + str(results[1]))
+print("\nIF DOCUMENT WAS FOUND CORRECTLY:")
+print("Precision (Sentences Retrieved): \t" + str(results[2]))
+print("Recall (Relevant Sentences): \t\t" + str(results[3]))
+
+results = Claim.evidence_extraction_stats(claims, _type="ner")
+
+print("\n###############################")
+print("# Possible Sentences Only NER #")
+print("###############################")
+print("Precision (Sentences Retrieved): \t" + str(results[0]))
+print("Recall (Relevant Sentences): \t\t" + str(results[1]))
+print("\nIF DOCUMENT WAS FOUND CORRECTLY:")
+print("Precision (Sentences Retrieved): \t" + str(results[2]))
+print("Recall (Relevant Sentences): \t\t" + str(results[3]))
+
+results = Claim.evidence_extraction_stats(claims, _type="all")
+
+print("\n###############################")
+print("# Possible Sentences For BOTH #")
+print("###############################")
 print("Precision (Sentences Retrieved): \t" + str(results[0]))
 print("Recall (Relevant Sentences): \t\t" + str(results[1]))
 print("\nIF DOCUMENT WAS FOUND CORRECTLY:")

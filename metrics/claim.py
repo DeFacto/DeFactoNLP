@@ -16,6 +16,8 @@ class Claim:
         Claim.id_index[_id].append(self)
         self.predicted_docs = []
         self.predicted_evidence = []
+        self.predicted_docs_ner = []
+        self.predicted_evidence_ner = []
 
     def add_gold_evidence(self, document, evidence, line_num):
         evidence = Evidence(document, evidence, line_num)
@@ -40,6 +42,15 @@ class Claim:
             e = str(pair[0]), str(pair[1])
             self.predicted_evidence.append(e)
 
+    def add_predicted_docs_ner(self, docs):
+        for doc in docs:
+            self.predicted_docs_ner.append(doc)
+
+    def add_predicted_sentences_ner(self, pairs):
+        for pair in pairs:
+            e = str(pair[0]), str(pair[1])
+            self.predicted_evidence_ner.append(e)
+
     def get_gold_documents(self):
         docs = set()
         for e in self.gold_evidence:
@@ -51,6 +62,19 @@ class Claim:
         for e in self.gold_evidence:
             pairs |= e.pairs
         return pairs
+
+    def get_predicted_evidence(self, _type="tfidf"):
+        if _type == "tfidf":
+            return self.predicted_evidence
+        elif _type == "ner":
+            return self.predicted_evidence_ner
+        else:
+            evidences = set()
+            for e in self.predicted_evidence:
+                evidences.add(e)
+            for e in self.predicted_evidence_ner:
+                evidences.add(e)
+            return evidences
 
     def calculate_correct_docs(self, difficulty="all"):
         num_corr_docs = 0
@@ -64,21 +88,44 @@ class Claim:
                     num_incorr_docs += 1
         return num_corr_docs, num_incorr_docs
 
-    def calculate_correct_sentences(self, difficulty="all"):
+    def calculate_correct_sentences(self, difficulty="all", _type="tfidf"):
         num_corr_e = 0
         gold_pairs = self.get_gold_pairs()
         if difficulty == "all":
-            for e in self.predicted_evidence:
-                if e in gold_pairs:
-                    num_corr_e += 1
+            if _type == "ner":
+                for e in self.predicted_evidence_ner:
+                    if e in gold_pairs:
+                        num_corr_e += 1
+            elif _type == "tfidf":
+                for e in self.predicted_evidence:
+                    if e in gold_pairs:
+                        num_corr_e += 1
+            else:
+                for e in self.get_predicted_evidence(_type=_type):
+                    if e in gold_pairs:
+                        num_corr_e += 1
         return num_corr_e
 
-    def check_evidence_found_doc(self):
+    def check_evidence_found_doc(self, _type="tfidf"):
         gold_docs = self.get_gold_documents()
-        for doc in self.predicted_docs:
-            if doc in gold_docs:
-                return True
-        return False
+        if _type == "tfidf":
+            for doc in self.predicted_docs:
+                if doc in gold_docs:
+                    return True
+            return False
+        elif _type == "ner":
+            for doc in self.predicted_docs_ner:
+                if doc in gold_docs:
+                    return True
+            return False
+        else:
+            for doc in self.predicted_docs:
+                if doc in gold_docs:
+                    return True
+            for doc in self.predicted_docs_ner:
+                if doc in gold_docs:
+                    return True
+            return False
 
     @classmethod
     def find_by_id(cls, _id):
@@ -105,7 +152,7 @@ class Claim:
         return precision_correct, recall_correct
 
     @classmethod
-    def evidence_extraction_stats(cls, claims):
+    def evidence_extraction_stats(cls, claims, _type="tfidf"):
         precision_sent_correct = 0
         recall_sent_correct = 0
         total_claims = 0
@@ -119,13 +166,13 @@ class Claim:
                 continue
 
             total_claims += 1
-            sent_correct = claim.calculate_correct_sentences(difficulty="all")
+            sent_correct = claim.calculate_correct_sentences(difficulty="all", _type=_type)
 
-            precision_sent_correct += sent_correct / (len(claim.predicted_evidence) + 0.000001)
+            precision_sent_correct += sent_correct / (len(claim.get_predicted_evidence(_type=_type)) + 0.000001)
             recall_sent_correct += sent_correct / (len(claim.get_gold_pairs()) + 0.000001)
 
-            if claim.check_evidence_found_doc():
-                precision_doc_sent_correct += sent_correct / (len(claim.predicted_evidence) + 0.000001)
+            if claim.check_evidence_found_doc(_type=_type):
+                precision_doc_sent_correct += sent_correct / (len(claim.get_predicted_evidence(_type=_type)) + 0.000001)
                 recall_doc_sent_correct += sent_correct / (len(claim.get_gold_pairs()) + 0.000001)
                 total_claims_doc_found += 1
 
