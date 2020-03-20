@@ -2,9 +2,17 @@ import os
 import jsonlines
 from random import shuffle
 import gensim
+import sys
 
 import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+
+if len(sys.argv)-1 == 1:
+    max_counter = 1000000  # 1 000 000
+else:
+    max_counter = 10000 # 10 000
+    print("Max Counter not defined!")
+    print("Set Default Value: " + str(max_counter))
 
 # full text and processed in ['text'] tag
 wiki_folder = "../wiki-pages-split"
@@ -12,7 +20,8 @@ files = os.listdir(wiki_folder)
 shuffle(files)
 
 counter = 0
-max_counter = 1000000 #1 000 000
+
+
 train_text = []
 tokens = []
 for file in files:
