@@ -16,6 +16,7 @@ relevant_sentences_file = "data/dev_relevant_docs.jsonl"
 concatenate_file = "data/dev_concatenation.jsonl"
 instances = []
 zero_results = 0
+INCLUDE_NER = False
 
 relevant_sentences_file = jsonlines.open(relevant_sentences_file)
 model = "rte/fever_output/model.tar.gz"
@@ -89,21 +90,23 @@ with jsonlines.open(concatenate_file, mode='w') as writer_c:
             zero_results += 1
             potential_evidence_sentences.append("Nothing")
             evidence.append(["Nothing", 0])
-        relevant_docs, entities = doc_retrieval.getRelevantDocs(claim, wiki_entities, "spaCy",
-                                                                nlp)  # "spaCy", nlp)#
-        print(relevant_docs)
-        # print(entities)
-        relevant_sentences = sentence_retrieval.getRelevantSentences(relevant_docs, entities, wiki_split_docs_dir)
-        # print(relevant_sentences)
 
-        predicted_evidence = []
-        for sent in relevant_sentences:
-            predicted_evidence.append((sent['id'], sent['line_num']))
-            potential_evidence_sentences.append(sent['sentence'])
-            evidence.append((sent['id'], sent['line_num']))
+        if INCLUDE_NER:
+            relevant_docs, entities = doc_retrieval.getRelevantDocs(claim, wiki_entities, "spaCy",
+                                                                    nlp)  # "spaCy", nlp)#
+            print(relevant_docs)
+            # print(entities)
+            relevant_sentences = sentence_retrieval.getRelevantSentences(relevant_docs, entities, wiki_split_docs_dir)
+            # print(relevant_sentences)
 
-        instances[i]['predicted_pages_ner'] = relevant_docs
-        instances[i]['predicted_sentences_ner'] = predicted_evidence
+            predicted_evidence = []
+            for sent in relevant_sentences:
+                predicted_evidence.append((sent['id'], sent['line_num']))
+                potential_evidence_sentences.append(sent['sentence'])
+                evidence.append((sent['id'], sent['line_num']))
+
+            instances[i]['predicted_pages_ner'] = relevant_docs
+            instances[i]['predicted_sentences_ner'] = predicted_evidence
 
         writer_c.write(instances[i])
         print("Claim number: " + str(i) + " of " + str(len(instances)))
