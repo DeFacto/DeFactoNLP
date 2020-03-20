@@ -76,6 +76,7 @@ with jsonlines.open(concatenate_file, mode='w') as writer_c:
             for line in full_lines:
                 lines.append(line['content'])
 
+
             lines[sentence[1]] = lines[sentence[1]].strip()
             lines[sentence[1]] = lines[sentence[1]].replace("-LRB-", " ( ")
             lines[sentence[1]] = lines[sentence[1]].replace("-RRB-", " ) ")
@@ -88,6 +89,24 @@ with jsonlines.open(concatenate_file, mode='w') as writer_c:
             zero_results += 1
             potential_evidence_sentences.append("Nothing")
             evidence.append(["Nothing", 0])
+        relevant_docs, entities = doc_retrieval.getRelevantDocs(claim, wiki_entities, "spaCy",
+                                                                nlp)  # "spaCy", nlp)#
+        print(relevant_docs)
+        # print(entities)
+        relevant_sentences = sentence_retrieval.getRelevantSentences(relevant_docs, entities, wiki_split_docs_dir)
+        # print(relevant_sentences)
+
+        predicted_evidence = []
+        for sent in relevant_sentences:
+            predicted_evidence.append((sent['id'], sent['line_num']))
+            potential_evidence_sentences.append(sent['sentence'])
+            evidence.append((sent['id'], sent['line_num']))
+
+        instances[i]['predicted_pages_ner'] = relevant_docs
+        instances[i]['predicted_sentences_ner'] = predicted_evidence
+
+        writer_c.write(instances[i])
+        print("Claim number: " + str(i) + " of " + str(len(instances)))
 
         preds = run_rte(claim, potential_evidence_sentences, claim_num)
 
@@ -106,22 +125,5 @@ with jsonlines.open(concatenate_file, mode='w') as writer_c:
         claim_num += 1
         # print(claim_num)
         # print(instances[i])
-        relevant_docs, entities = doc_retrieval.getRelevantDocs(claim, wiki_entities, "spaCy",
-                                                                nlp)  # "spaCy", nlp)#
-        print(relevant_docs)
-        # print(entities)
-        relevant_sentences = sentence_retrieval.getRelevantSentences(relevant_docs, entities, wiki_split_docs_dir)
-        # print(relevant_sentences)
-
-        predicted_evidence = []
-        for sent in relevant_sentences:
-            predicted_evidence.append((sent['id'], sent['line_num']))
-
-        print(predicted_evidence)
-        instances[i]['predicted_pages_ner'] = relevant_docs
-        instances[i]['predicted_sentences_ner'] = predicted_evidence
-
-        writer_c.write(instances[i])
-        print("Claim number " + str(i) + " of " + str(len(instances)))
 
 print("Number of Zero Sentences Found: " + str(zero_results))

@@ -195,8 +195,8 @@ gold_train = "data/subsample_train_relevant_docs.jsonl"
 entailment_predictions_train = "rte/entailment_predictions_train"
 
 predictions_test = "data/dev.jsonl"
-entailment_predictions_test = "rte/entailment_predictions"
-new_predictions_file = "predictions/new_predictions_dev.jsonl"
+entailment_predictions_test = "rte/entailment_predictions_dev_ner"
+new_predictions_file = "predictions/new_predictions_dev_ner.jsonl"
 
 x_train, y_train = populate_train(gold_train, entailment_predictions_train)
 # x_test = x_train[7000:]

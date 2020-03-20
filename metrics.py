@@ -20,7 +20,7 @@ if len(sys.argv) - 1 == 1:
         train_file = "data/dev.jsonl"
         train_relevant_file = "data/dev_relevant_docs.jsonl"
         train_concatenate_file = "data/dev_concatenation.jsonl"
-        train_predictions_file = "predictions/new_predictions_dev.jsonl"
+        train_predictions_file = "predictions/new_predictions_dev_ner.jsonl"
 else:
     print("Needs to have one argument. Choose:")
     print("train")
@@ -66,7 +66,7 @@ for claim in train_set:
 for claim in train_relevant:
     _id = claim['id']
     _claim = Claim.find_by_id(_id)[0]
-
+    _claim.line = claim
     # no search is needed... no information on gold about retrieval
     if not _claim.verifiable:
         continue
@@ -147,6 +147,52 @@ results = fever_score(train_prediction, actual=train_set)
 print("\n#########")
 print("# FEVER #")
 print("#########")
+print("Strict_score: \t\t\t" + str(results[0]))
+print("Acc_score: \t\t\t" + str(results[1]))
+print("Precision: \t\t\t" + str(results[2]))
+print("Recall: \t\t\t" + str(results[3]))
+print("F1-Score: \t\t\t" + str(results[4]))
+
+predictions_if_doc_found = []
+claims_if_doc_found = []
+
+for claim in train_prediction:
+    _id = claim['id']
+    _claim = Claim.find_by_id(_id)[0]
+
+    if _claim.check_evidence_found_doc(_type="tfidf"):
+        claims_if_doc_found.append(_claim.line)
+        predictions_if_doc_found.append(claim)
+
+# scores from fever
+results = fever_score(predictions_if_doc_found, actual=claims_if_doc_found)
+
+print("\n#######################")
+print("# FEVER If Doc Found! #")
+print("#######################")
+print("Strict_score: \t\t\t" + str(results[0]))
+print("Acc_score: \t\t\t" + str(results[1]))
+print("Precision: \t\t\t" + str(results[2]))
+print("Recall: \t\t\t" + str(results[3]))
+print("F1-Score: \t\t\t" + str(results[4]))
+
+predictions_if_evidence_found = []
+claims_if_evidence_found = []
+
+for claim in train_prediction:
+    _id = claim['id']
+    _claim = Claim.find_by_id(_id)[0]
+
+    if _claim.check_evidence_was_found(_type="tfidf"):
+        claims_if_evidence_found.append(_claim.line)
+        predictions_if_evidence_found.append(claim)
+
+# scores from fever
+results = fever_score(predictions_if_evidence_found, actual=claims_if_evidence_found)
+
+print("\n############################")
+print("# FEVER If Sentence Found! #")
+print("############################")
 print("Strict_score: \t\t\t" + str(results[0]))
 print("Acc_score: \t\t\t" + str(results[1]))
 print("Precision: \t\t\t" + str(results[2]))

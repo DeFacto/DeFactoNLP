@@ -17,9 +17,9 @@ else:
     print("#" * 10)
     print("Parameters should be:\n test_file\n results_file \n concatenate_file\nDefaults being used\n")
     print("#" * 10)
-    test_file = "data/subsample_train_relevant_docs.jsonl"
+    test_file = "data/dev_relevant_docs.jsonl"
     results_file = "predictions_sanity.jsonl"
-    concatenate_file = "data/subsample_train_concatenation.jsonl"
+    concatenate_file = "data/subsample_dev_concatenation.jsonl"
 
 nlp = spacy.load('en_core_web_lg')
 
@@ -47,13 +47,13 @@ for lines in test_file:
 with jsonlines.open(results_file, mode='w') as writer_r, \
      jsonlines.open(concatenate_file, mode='w') as writer_c:
     for example in test_set:
-        relevant_docs, entities = doc_retrieval.getRelevantDocs(example['claim'], wiki_entities, "StanfordNER", nlp)#"spaCy", nlp)#
+        relevant_docs, entities = doc_retrieval.getRelevantDocs(example['claim'], wiki_entities, "spaCy", nlp)
         relevant_docs = list(set(relevant_docs))
         print(example['claim'])
-        print(relevant_docs)
-        print(entities)
+        # print(relevant_docs)
+        # print(entities)
         relevant_sentences = sentence_retrieval.getRelevantSentences(relevant_docs, entities, wiki_split_docs_dir)
-        print(relevant_sentences)
+        # print(relevant_sentences)
         for i in range(len(example['predicted_sentences'])):
 
             # load document from TF-IDF
@@ -85,11 +85,11 @@ with jsonlines.open(results_file, mode='w') as writer_r, \
                     'sentence': lines[example['predicted_sentences'][i][1]]
                     }
             relevant_sentences.append(temp)
-        print(relevant_sentences)
+        # print(relevant_sentences)
         relevant_docs = relevant_docs + list(example['predicted_pages'])
         relevant_docs = list(set(relevant_docs))
-        print("DOCS: ")
-        print(relevant_docs)
+        # print("DOCS: ")
+        # print(relevant_docs)
         result = rte.textual_entailment_evidence_retriever(example['claim'], relevant_sentences, claim_id)
         claim_id = claim_id + 1
         final_result = {'id': example['id'],
@@ -104,8 +104,9 @@ with jsonlines.open(results_file, mode='w') as writer_r, \
 
         # introduce extraction information performed by NER
         example['predicted_pages_ner'] = relevant_docs
-        example['predicted_sentences_final'] = predicted_evidence
+        example['predicted_sentences_ner'] = predicted_evidence
 
         # save info of predictions based on concatenation
         writer_c.write(example)
         writer_r.write(final_result)
+        print("Claim number: " + str(claim_id) + " of " + str(len(test_set)))

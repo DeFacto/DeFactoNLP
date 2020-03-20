@@ -18,6 +18,8 @@ class Claim:
         self.predicted_evidence = []
         self.predicted_docs_ner = []
         self.predicted_evidence_ner = []
+        self.line = []
+        self.predicted_line = []
 
     def add_gold_evidence(self, document, evidence, line_num):
         evidence = Evidence(document, evidence, line_num)
@@ -112,24 +114,17 @@ class Claim:
 
     def check_evidence_found_doc(self, _type="tfidf"):
         gold_docs = self.get_gold_documents()
-        if _type == "tfidf":
-            for doc in self.predicted_docs:
-                if doc in gold_docs:
-                    return True
-            return False
-        elif _type == "ner":
-            for doc in self.predicted_docs_ner:
-                if doc in gold_docs:
-                    return True
-            return False
-        else:
-            for doc in self.predicted_docs:
-                if doc in gold_docs:
-                    return True
-            for doc in self.predicted_docs_ner:
-                if doc in gold_docs:
-                    return True
-            return False
+        for doc in self.get_predicted_documents(_type=_type):
+            if doc in gold_docs:
+                return True
+        return False
+
+    def check_evidence_was_found(self, _type="tfidf"):
+        gold_pairs = self.get_gold_pairs()
+        for sent in self.get_predicted_evidence(_type=_type):
+            if sent in gold_pairs:
+                return True
+        return False
 
     @classmethod
     def find_by_id(cls, _id):
