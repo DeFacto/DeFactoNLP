@@ -18,6 +18,7 @@ class Claim:
         self.predicted_evidence = []
         self.predicted_docs_ner = []
         self.predicted_evidence_ner = []
+        self.predicted_docs_oie = []
         self.line = []
         self.predicted_line = []
 
@@ -53,6 +54,10 @@ class Claim:
             e = str(pair[0]), str(pair[1])
             self.predicted_evidence_ner.append(e)
 
+    def add_predicted_docs_oie(self, docs):
+        for doc in docs:
+            self.predicted_docs_oie.append(doc)
+
     def get_gold_documents(self):
         docs = set()
         for e in self.gold_evidence:
@@ -70,19 +75,25 @@ class Claim:
             return self.predicted_docs
         if _type == "ner":
             return self.predicted_docs_ner
+        if _type == "oie":
+            return self.predicted_docs_oie
         else:
             documents = set()
             for doc in self.predicted_docs:
                 documents.add(doc)
             for doc in self.predicted_docs_ner:
                 documents.add(doc)
+            for doc in self.predicted_docs_oie:
+                documents.add(doc)
             return documents
 
     def get_predicted_evidence(self, _type="tfidf"):
         if _type == "tfidf":
-            return self.predicted_evidence
+            evidences = set(self.predicted_evidence)
+            return evidences
         elif _type == "ner":
-            return self.predicted_evidence_ner
+            evidences = set(self.predicted_evidence_ner)
+            return evidences
         else:
             evidences = set()
             for e in self.predicted_evidence:
@@ -106,6 +117,7 @@ class Claim:
     def calculate_correct_sentences(self, difficulty="all", _type="tfidf"):
         num_corr_e = 0
         gold_pairs = self.get_gold_pairs()
+        gold_pairs = set(gold_pairs)
         if difficulty == "all":
             for e in self.get_predicted_evidence(_type=_type):
                 if e in gold_pairs:

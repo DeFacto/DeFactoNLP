@@ -18,9 +18,9 @@ if len(sys.argv) - 1 == 1:
         train_predictions_file = "predictions/predictions_train.jsonl"
     else:  # type_file == 'dev':
         train_file = "data/dev.jsonl"
-        train_relevant_file = "data/dev_relevant_docs.jsonl"
-        train_concatenate_file = "data/dev_concatenation.jsonl"
-        train_predictions_file = "predictions/new_predictions_dev_ner.jsonl"
+        train_relevant_file = "data/dev_concatenation.jsonl"
+        train_concatenate_file = "data/dev_concatenation_oie.jsonl"
+        train_predictions_file = "predictions/new_predictions_dev.jsonl"
 else:
     print("Needs to have one argument. Choose:")
     print("train")
@@ -73,6 +73,9 @@ for claim in train_relevant:
 
     _claim.add_predicted_docs(claim['predicted_pages'])
     _claim.add_predicted_sentences(claim['predicted_sentences'])
+    if "predicted_pages_ner" in claim:
+        _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
+        _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
 
 for claim in train_concatenate:
     _id = claim['id']
@@ -81,8 +84,10 @@ for claim in train_concatenate:
     if not _claim.verifiable:
         continue
 
-    _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
-    _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
+    # _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
+    # _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
+    _claim.add_predicted_docs_oie(claim['predicted_pages_oie'])
+
 
 results = Claim.document_retrieval_stats(claims, _type="tfidf")
 
@@ -96,6 +101,14 @@ results = Claim.document_retrieval_stats(claims, _type="ner")
 
 print("\n######################")
 print("# Documents Only NER #")
+print("########################")
+print("Precision (Document Retrieved): \t" + str(results[0]))
+print("Recall (Relevant Documents): \t\t" + str(results[1]))
+
+results = Claim.document_retrieval_stats(claims, _type="oie")
+
+print("\n######################")
+print("# Documents Only OIE #")
 print("########################")
 print("Precision (Document Retrieved): \t" + str(results[0]))
 print("Recall (Relevant Documents): \t\t" + str(results[1]))

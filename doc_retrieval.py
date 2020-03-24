@@ -1,13 +1,54 @@
 import os
 import jsonlines
 import json
-import nltk
 import codecs
 import utilities
-import spacy
 import stringdist
-from spacy.matcher import PhraseMatcher
 import unicodedata as ud
+import clausiepy.clausiepy as clausie
+
+
+def clean_entities(entities):
+    entities = list(entities)
+    ents_to_remove = set()
+    for i in range(len(entities)):
+        for j in range(len(entities)):
+            if i == j:
+                continue
+            if entities[i] in entities[j]:
+                # keep the smaller ones...
+                ents_to_remove.add(entities[j])
+                # or keep the bigger one...
+                # ents_to_remove.add(entities[i])
+    for ent in ents_to_remove:
+        entities.remove(ent)
+
+    return entities
+
+
+def get_docs_with_oie(claim, wiki_entities,client):
+    ents = set()
+
+    # triple extraction standfordIE
+    triples = client.annotate(claim)
+    for triple in triples:
+        ents.add(triple["subject"])
+        ents.add(triple["object"])
+
+    # triples extraction clausIE
+    if len(triples) == 0:
+        clauses = clausie.clausie(claim)
+        for clause in clauses:
+            for sub in clause['S']:
+                ents.add(sub)
+            for obj in clause['O']:
+                ents.add(obj)
+
+    if len(ents) > 4:
+        ents = clean_entities(ents)
+    docs, entities = getClosestDocs(wiki_entities, ents)
+
+    return docs, entities
 
 
 def getClosestDocs(wiki_entities, entities):
