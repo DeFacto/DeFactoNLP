@@ -36,21 +36,45 @@ def get_docs_with_oie(claim, wiki_entities,client):
         ents.add(triple["object"])
 
     # triples extraction clausIE
+    clauses, ner_spacy = clausie.clausie(claim)
     if len(triples) == 0:
-        clauses = clausie.clausie(claim)
         for clause in clauses:
             for sub in clause['S']:
-                ents.add(sub)
+                ents.add(sub.text)
             for obj in clause['O']:
-                ents.add(obj)
+                ents.add(obj.text)
+    print(ner_spacy)
+    print(ents)
+    for ent in ner_spacy:
+        ents.add(ent.text)
 
-    if len(ents) > 4:
+    if len(ents) > 5:
         ents = clean_entities(ents)
+
+    ents = list(ents)
+
+    if len(ents) != 0:
+        _str = ""
+        for ent in ents:
+            _str += ent
+            _str += " "
+        _str = _str[:-1]
+        ents.append(_str)
+
+        if "film" in claim:
+            _str += " ( film )"
+            ents.append(_str)
+        elif "(" in claim:
+            disambiguation = claim[claim.find("(") + 1:claim.find(")")]
+            _str += " " + disambiguation
+            ents.append(_str)
+    print(ents)
     docs, entities = getClosestDocs(wiki_entities, ents)
 
     return docs, entities
 
 
+# getting the 3 closest docs!
 def getClosestDocs(wiki_entities, entities):
     entities = list(entities)
     for i in range(len(entities)):
@@ -58,21 +82,48 @@ def getClosestDocs(wiki_entities, entities):
     selected_docs = []
     for ent in entities:
         ent = ud.normalize('NFC', ent)
-        if ent in wiki_entities:
-            best_match = ent
-        else:
-            best = 1.1
-            best_match = ""
-            for we in wiki_entities:
-                dist = stringdist.levenshtein_norm(we, ent)
-                if dist < best:
-                    best = dist
-                    best_match = we
-        best_match = best_match.replace(" ", "_")
-        best_match = best_match.replace("/", "-SLH-")
-        best_match = best_match.replace("(", "-LRB-")
-        best_match = best_match.replace(")", "-RRB-")
-        selected_docs.append(best_match)
+
+        best_1 = 1.1
+        best_match_1 = ""
+
+        best_2 = 1.1
+        best_match_2 = ""
+
+        best_3 = 1.1
+        best_match_3 = ""
+
+        for we in wiki_entities:
+            dist = stringdist.levenshtein_norm(we, ent)
+            if dist < best_1:
+                best_1 = dist
+                best_match_1 = we
+
+            elif dist < best_2:
+                best_2 = dist
+                best_match_2 = we
+
+            elif dist < best_3:
+                best_3 = dist
+                best_match_3 = we
+
+        best_match_1 = best_match_1.replace(" ", "_")
+        best_match_1 = best_match_1.replace("/", "-SLH-")
+        best_match_1 = best_match_1.replace("(", "-LRB-")
+        best_match_1 = best_match_1.replace(")", "-RRB-")
+
+        best_match_2 = best_match_2.replace(" ", "_")
+        best_match_2 = best_match_2.replace("/", "-SLH-")
+        best_match_2 = best_match_2.replace("(", "-LRB-")
+        best_match_2 = best_match_2.replace(")", "-RRB-")
+
+        best_match_3 = best_match_3.replace(" ", "_")
+        best_match_3 = best_match_3.replace("/", "-SLH-")
+        best_match_3 = best_match_3.replace("(", "-LRB-")
+        best_match_3 = best_match_3.replace(")", "-RRB-")
+
+        selected_docs.append(best_match_1)
+        selected_docs.append(best_match_2)
+        selected_docs.append(best_match_3)
     return selected_docs, entities
 
 

@@ -87,6 +87,8 @@ for claim in train_concatenate:
     # _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
     # _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
     _claim.add_predicted_docs_oie(claim['predicted_pages_oie'])
+    if not _claim.check_evidence_found_doc(_type="all"):
+        print(str(_claim.get_gold_documents()) + " -- " + str(_claim.get_predicted_documents(_type="all")))
 
 
 results = Claim.document_retrieval_stats(claims, _type="tfidf")
@@ -96,6 +98,7 @@ print("# Documents Only TFIDF #")
 print("########################")
 print("Precision (Document Retrieved): \t" + str(results[0]))
 print("Recall (Relevant Documents): \t\t" + str(results[1]))
+print("At least one Doc Found: \t\t" + str(results[2]))
 
 results = Claim.document_retrieval_stats(claims, _type="ner")
 
@@ -104,6 +107,7 @@ print("# Documents Only NER #")
 print("########################")
 print("Precision (Document Retrieved): \t" + str(results[0]))
 print("Recall (Relevant Documents): \t\t" + str(results[1]))
+print("At least one Doc Found: \t\t" + str(results[2]))
 
 results = Claim.document_retrieval_stats(claims, _type="oie")
 
@@ -112,14 +116,16 @@ print("# Documents Only OIE #")
 print("########################")
 print("Precision (Document Retrieved): \t" + str(results[0]))
 print("Recall (Relevant Documents): \t\t" + str(results[1]))
+print("At least one Doc Found: \t\t" + str(results[2]))
 
 results = Claim.document_retrieval_stats(claims, _type="all")
 
 print("\n######################")
-print("# Documents for BOTH #")
+print("# Documents for All #")
 print("######################")
 print("Precision (Document Retrieved): \t" + str(results[0]))
 print("Recall (Relevant Documents): \t\t" + str(results[1]))
+print("At least one Doc Found: \t\t" + str(results[2]))
 
 results = Claim.evidence_extraction_stats(claims, _type="tfidf")
 

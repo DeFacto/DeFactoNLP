@@ -146,6 +146,7 @@ class Claim:
     def document_retrieval_stats(cls, claims, _type="tfidf"):
         precision_correct = 0
         recall_correct = 0
+        correct_doc = 0
         total_claims = 0
 
         for claim in claims:
@@ -157,10 +158,14 @@ class Claim:
             precision_correct += doc_correct / (len(claim.get_predicted_documents(_type=_type)) + 0.000001)
             recall_correct += doc_correct / (len(claim.get_gold_documents()) + 0.000001)
 
+            if doc_correct > 0:
+                correct_doc += 1
+
         precision_correct /= total_claims
         recall_correct /= total_claims
+        correct_doc /= total_claims
 
-        return precision_correct, recall_correct
+        return precision_correct, recall_correct, correct_doc
 
     @classmethod
     def evidence_extraction_stats(cls, claims, _type="tfidf"):

@@ -65,7 +65,7 @@ def run_rte(claim, evidence, claim_num):
 
 with StanfordOpenIE() as client:
     with jsonlines.open(concatenate_file, mode='w') as writer_c:
-        for i in range(6, len(instances)):
+        for i in range(len(instances)):
             claim = instances[i]['claim']
             print(claim)
             evidence = instances[i]['predicted_sentences']
