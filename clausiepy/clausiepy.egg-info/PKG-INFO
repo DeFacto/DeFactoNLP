@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: clausiepy
+Version: 0.0.1
+Summary: A reimplementation of ClausIE Information Extraction System in python
+Home-page: https://github.com/mmxgn/clausiepy
+Author: Emmanouil Theofanis Chourdakis
+Author-email: e.t.chourdakis@qmul.ac.uk
+License: UNKNOWN
+Description: UNKNOWN
+Keywords: openie clausie information extraction
+Platform: UNKNOWN

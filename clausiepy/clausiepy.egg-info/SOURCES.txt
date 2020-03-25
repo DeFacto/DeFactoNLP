@@ -1,0 +1,10 @@
+README.md
+setup.py
+clausiepy/__init__.py
+clausiepy/clausiepy.py
+clausiepy/util.py
+clausiepy.egg-info/PKG-INFO
+clausiepy.egg-info/SOURCES.txt
+clausiepy.egg-info/dependency_links.txt
+clausiepy.egg-info/requires.txt
+clausiepy.egg-info/top_level.txt
