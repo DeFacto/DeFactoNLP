@@ -6,6 +6,7 @@ import utilities
 import stringdist
 import unicodedata as ud
 import clausiepy.clausiepy as clausie
+from gensim.parsing.preprocessing import remove_stopwords
 
 
 def clean_entities(entities):
@@ -17,9 +18,9 @@ def clean_entities(entities):
                 continue
             if entities[i] in entities[j]:
                 # keep the smaller ones...
-                ents_to_remove.add(entities[j])
+                # ents_to_remove.add(entities[j])
                 # or keep the bigger one...
-                # ents_to_remove.add(entities[i])
+                ents_to_remove.add(entities[i])
     for ent in ents_to_remove:
         entities.remove(ent)
 
@@ -45,13 +46,21 @@ def get_docs_with_oie(claim, wiki_entities,client):
                 ents.add(obj.text)
     print(ner_spacy)
     print(ents)
-    for ent in ner_spacy:
-        ents.add(ent.text)
 
-    if len(ents) > 5:
+    if len(ents) > 4:
         ents = clean_entities(ents)
 
     ents = list(ents)
+
+    for ent in ner_spacy:
+        _text = ent.text
+        if not _text in ents:
+            ents.append( _text)
+
+        if "(" in claim:
+            disambiguation = claim[claim.find("(") + 1:claim.find(")")]
+            _text += " " + disambiguation
+            ents.append(_text)
 
     if len(ents) != 0:
         _str = ""
@@ -60,21 +69,15 @@ def get_docs_with_oie(claim, wiki_entities,client):
             _str += " "
         _str = _str[:-1]
         ents.append(_str)
-
-        if "film" in claim:
-            _str += " ( film )"
-            ents.append(_str)
-        elif "(" in claim:
-            disambiguation = claim[claim.find("(") + 1:claim.find(")")]
-            _str += " " + disambiguation
-            ents.append(_str)
+    else:
+        ents.append(remove_stopwords(claim))
     print(ents)
     docs, entities = getClosestDocs(wiki_entities, ents)
 
     return docs, entities
 
 
-# getting the 3 closest docs!
+# getting the 2 closest docs!
 def getClosestDocs(wiki_entities, entities):
     entities = list(entities)
     for i in range(len(entities)):
@@ -123,7 +126,7 @@ def getClosestDocs(wiki_entities, entities):
 
         selected_docs.append(best_match_1)
         selected_docs.append(best_match_2)
-        selected_docs.append(best_match_3)
+        # selected_docs.append(best_match_3)
     return selected_docs, entities
 
 
