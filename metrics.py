@@ -19,7 +19,7 @@ if len(sys.argv) - 1 == 1:
     else:  # type_file == 'dev':
         train_file = "data/dev.jsonl"
         train_relevant_file = "data/dev_relevant_docs.jsonl"
-        train_concatenate_file = "data/dev_sentence_selection_doc.jsonl"
+        train_concatenate_file = "data/dev_concatenation_oie.jsonl"
         train_predictions_file = "predictions/new_predictions_dev.jsonl"
 else:
     print("Needs to have one argument. Choose:")
@@ -87,11 +87,12 @@ for claim in train_concatenate:
     if not _claim.verifiable:
         continue
     
-    _claim.add_predicted_sentences_bert(claim['predicted_sentences_bert'])
+    if "predicted_sentences_bert" in claim:
+        _claim.add_predicted_sentences_bert(claim['predicted_sentences_bert'])
 
     # _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
     # _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
-    # _claim.add_predicted_docs_oie(claim['predicted_pages_oie'])
+    _claim.add_predicted_docs_oie(claim['predicted_pages_oie'])
     # if not _claim.check_evidence_found_doc(_type="all"):
     #     print(str(_claim.get_gold_documents()) + " -- " + str(_claim.get_predicted_documents(_type="all")))
 
