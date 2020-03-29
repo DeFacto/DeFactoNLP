@@ -21,6 +21,7 @@ class Claim:
         self.predicted_docs_oie = []
         self.line = []
         self.predicted_line = []
+        self.predicted_evidence_bert = []
 
     def add_gold_evidence(self, document, evidence, line_num):
         evidence = Evidence(document, evidence, line_num)
@@ -58,6 +59,11 @@ class Claim:
         for doc in docs:
             self.predicted_docs_oie.append(doc)
 
+    def add_predicted_sentences_bert(self, pairs):
+        for pair in pairs:
+            e = str(pair[0]), str(pair[1])
+            self.predicted_evidence_bert.append(e)
+        
     def get_gold_documents(self):
         docs = set()
         for e in self.gold_evidence:
@@ -94,11 +100,16 @@ class Claim:
         elif _type == "ner":
             evidences = set(self.predicted_evidence_ner)
             return evidences
+        elif _type == "bert":
+            evidences = set(self.predicted_evidence_bert)
+            return evidences 
         else:
             evidences = set()
             for e in self.predicted_evidence:
                 evidences.add(e)
             for e in self.predicted_evidence_ner:
+                evidences.add(e)
+            for e in self.predicted_evidence_bert:
                 evidences.add(e)
             return evidences
 

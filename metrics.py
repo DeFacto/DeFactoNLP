@@ -18,8 +18,8 @@ if len(sys.argv) - 1 == 1:
         train_predictions_file = "predictions/predictions_train.jsonl"
     else:  # type_file == 'dev':
         train_file = "data/dev.jsonl"
-        train_relevant_file = "data/dev_concatenation.jsonl"
-        train_concatenate_file = "data/dev_concatenation_oie.jsonl"
+        train_relevant_file = "data/dev_relevant_docs.jsonl"
+        train_concatenate_file = "data/dev_sentence_selection_doc.jsonl"
         train_predictions_file = "predictions/new_predictions_dev.jsonl"
 else:
     print("Needs to have one argument. Choose:")
@@ -73,22 +73,27 @@ for claim in train_relevant:
 
     _claim.add_predicted_docs(claim['predicted_pages'])
     _claim.add_predicted_sentences(claim['predicted_sentences'])
-    if "predicted_pages_ner" in claim:
-        _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
-        _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
+    _claim.add_predicted_sentences_bert(claim['predicted_sentences'])
+
 
 for claim in train_concatenate:
     _id = claim['id']
     _claim = Claim.find_by_id(_id)[0]
 
+    if "predicted_pages_ner" in claim:
+        _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
+        _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
+
     if not _claim.verifiable:
         continue
+    
+    _claim.add_predicted_sentences_bert(claim['predicted_sentences_bert'])
 
     # _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
     # _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
-    _claim.add_predicted_docs_oie(claim['predicted_pages_oie'])
-    if not _claim.check_evidence_found_doc(_type="all"):
-        print(str(_claim.get_gold_documents()) + " -- " + str(_claim.get_predicted_documents(_type="all")))
+    # _claim.add_predicted_docs_oie(claim['predicted_pages_oie'])
+    # if not _claim.check_evidence_found_doc(_type="all"):
+    #     print(str(_claim.get_gold_documents()) + " -- " + str(_claim.get_predicted_documents(_type="all")))
 
 
 results = Claim.document_retrieval_stats(claims, _type="tfidf")
@@ -143,6 +148,17 @@ results = Claim.evidence_extraction_stats(claims, _type="ner")
 print("\n###############################")
 print("# Possible Sentences Only NER #")
 print("###############################")
+print("Precision (Sentences Retrieved): \t" + str(results[0]))
+print("Recall (Relevant Sentences): \t\t" + str(results[1]))
+print("\nIF DOCUMENT WAS FOUND CORRECTLY:")
+print("Precision (Sentences Retrieved): \t" + str(results[2]))
+print("Recall (Relevant Sentences): \t\t" + str(results[3]))
+
+results = Claim.evidence_extraction_stats(claims, _type="bert")
+
+print("\n################################")
+print("# Possible Sentences Only BERT #")
+print("################################")
 print("Precision (Sentences Retrieved): \t" + str(results[0]))
 print("Recall (Relevant Sentences): \t\t" + str(results[1]))
 print("\nIF DOCUMENT WAS FOUND CORRECTLY:")
