@@ -7,6 +7,10 @@ import stringdist
 import unicodedata as ud
 import clausiepy.clausiepy as clausie
 from gensim.parsing.preprocessing import remove_stopwords
+import operator
+import datetime
+import multiprocessing
+from Levenshtein import distance
 
 
 def clean_entities(entities):
@@ -82,8 +86,9 @@ def getClosestDocs(wiki_entities, entities):
     entities = list(entities)
     for i in range(len(entities)):
         entities[i] = str(entities[i])
-    selected_docs = []
+    selected_docs = set()
     for ent in entities:
+        print(ent)
         ent = ud.normalize('NFC', ent)
 
         best_1 = 1.1
@@ -95,19 +100,19 @@ def getClosestDocs(wiki_entities, entities):
         best_3 = 1.1
         best_match_3 = ""
 
+        dists = []
+        a = datetime.datetime.now()
         for we in wiki_entities:
-            dist = stringdist.levenshtein_norm(we, ent)
-            if dist < best_1:
-                best_1 = dist
-                best_match_1 = we
+            dists.append((distance(we, ent), we))
+        b = datetime.datetime.now()
+        print(b-a)
 
-            elif dist < best_2:
-                best_2 = dist
-                best_match_2 = we
+        pair_1 = min(dists, key=operator.itemgetter(0))
+        dists.remove(pair_1)
+        pair_2 = min(dists, key=operator.itemgetter(0))
 
-            elif dist < best_3:
-                best_3 = dist
-                best_match_3 = we
+        best_match_1 = pair_1[1]
+        best_match_2 = pair_2[1]
 
         best_match_1 = best_match_1.replace(" ", "_")
         best_match_1 = best_match_1.replace("/", "-SLH-")
@@ -124,10 +129,11 @@ def getClosestDocs(wiki_entities, entities):
         best_match_3 = best_match_3.replace("(", "-LRB-")
         best_match_3 = best_match_3.replace(")", "-RRB-")
 
-        selected_docs.append(best_match_1)
-        selected_docs.append(best_match_2)
+        selected_docs.add(best_match_1)
+        selected_docs.add(best_match_2)
         # selected_docs.append(best_match_3)
-    return selected_docs, entities
+        print(selected_docs)
+    return list(selected_docs), entities
 
 
 def getRelevantDocs(claim, wiki_entities, ner_module="spaCy", nlp=None):  # ,matcher=None,nlp=None

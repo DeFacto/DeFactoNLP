@@ -3,28 +3,28 @@ import json
 import doc_retrieval
 import sentence_retrieval
 import rte.rte as rte
-import utilities
 import spacy
 import os
 import codecs
 import unicodedata as ud
-import gensim
 from openie import StanfordOpenIE
 
-from allennlp.models.archival import load_archive
-from allennlp.predictors import Predictor
 
 relevant_sentences_file = "data/dev_concatenation.jsonl"
 concatenate_file = "data/dev_concatenation_oie_4.jsonl"
 instances = []
 zero_results = 0
 INCLUDE_NER = False
-INLCUDE_OIE = True
+INCLUDE_OIE = True
+RUN_RTE = False
 
 relevant_sentences_file = jsonlines.open(relevant_sentences_file)
-model = "rte/fever_output/model.tar.gz"
-model = load_archive(model)
-predictor = Predictor.from_archive(model)
+if RUN_RTE:
+    from allennlp.models.archival import load_archive
+    from allennlp.predictors import Predictor
+    model = "rte/fever_output/model.tar.gz"
+    model = load_archive(model)
+    predictor = Predictor.from_archive(model)
 
 wiki_dir = "data/wiki-pages/wiki-pages"
 wiki_split_docs_dir = "data/wiki-pages-split"
@@ -116,25 +116,26 @@ with StanfordOpenIE() as client:
                 instances[i]['predicted_pages_ner'] = relevant_docs
                 instances[i]['predicted_sentences_ner'] = predicted_evidence
 
-            preds = run_rte(claim, potential_evidence_sentences, claim_num)
+            if RUN_RTE:
+                preds = run_rte(claim, potential_evidence_sentences, claim_num)
 
-            saveFile = codecs.open("rte/entailment_predictions/claim_" + str(claim_num) + ".json", mode="w+",
-                                   encoding="utf-8")
-            for j in range(len(preds)):
-                # print(preds)
-                # print(evidence)
-                preds[j]['claim'] = claim
-                preds[j]['premise_source_doc_id'] = evidence[j][0]
-                preds[j]['premise_source_doc_line_num'] = evidence[j][1]
-                preds[j]['premise_source_doc_sentence'] = potential_evidence_sentences[j]
-                saveFile.write(json.dumps(preds[j], ensure_ascii=False) + "\n")
+                saveFile = codecs.open("rte/entailment_predictions/claim_" + str(claim_num) + ".json", mode="w+",
+                                       encoding="utf-8")
+                for j in range(len(preds)):
+                    # print(preds)
+                    # print(evidence)
+                    preds[j]['claim'] = claim
+                    preds[j]['premise_source_doc_id'] = evidence[j][0]
+                    preds[j]['premise_source_doc_line_num'] = evidence[j][1]
+                    preds[j]['premise_source_doc_sentence'] = potential_evidence_sentences[j]
+                    saveFile.write(json.dumps(preds[j], ensure_ascii=False) + "\n")
 
-            saveFile.close()
+                saveFile.close()
             claim_num += 1
             # print(claim_num)
             # print(instances[i])
 
-            if INLCUDE_OIE:
+            if INCLUDE_OIE:
                 relevant_docs, entities = doc_retrieval.get_docs_with_oie(claim, wiki_entities, client)
                 print(entities)
                 instances[i]['predicted_pages_oie'] = relevant_docs
