@@ -84,6 +84,18 @@ DeFacto
 ------------------------------------------------------------------------------------------------------------------
 '''
 
+def encode(x):
+
+    x = x.replace(" (", "-LRB-")
+    x = x.replace(") ", "-RRB-")
+    x = x.replace("/", "-SLH-")
+    x = x.replace(" [", "-LSB-")
+    x = x.replace("] ", "-RSB-")
+    x = x.replace(" ", "_")
+    x = x.replace(":", "-COLON-")
+    return x
+
+
 def getDocContentFromFile(doc_filename):
     try:
         content=[]
@@ -355,7 +367,28 @@ def train_model():
             y = []
             [y.extend(row) for row in [r for r in data_y]]
 
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=MODEL_TEST_SIZE, random_state=42)
+            # marreta
+            _X = []
+            _y = []
+            maxk = sum(y)
+            k = 0
+            for i in range(0, len(y)):
+                if y[i] == 1:
+                    _X.append(X[i])
+                    _y.append(y[i])
+                elif k <= maxk and y[i] == 0:
+                    _X.append(X[i])
+                    _y.append(y[i])
+                    k += 1
+                elif sum(_y) < maxk:
+                    continue
+                else:
+                    break
+
+            print(len(_y))
+            print(sum(_y))
+
+            X_train, X_test, y_train, y_test = train_test_split(_X, _y, test_size=MODEL_TEST_SIZE, random_state=42)
 
             print('training the classifier...')
             clf = RandomForestClassifier(n_jobs=-1, n_estimators=100)
@@ -366,10 +399,11 @@ def train_model():
             model2 = clf2.fit(X_train, y_train)
             predictions = model.predict(X_test)
             predictions2 = model2.predict(X_test)
-            #P, R, F, S = sklearn.metrics.precision_recall_fscore_support(y_test, predictions)
+            P, R, F, S = sklearn.metrics.precision_recall_fscore_support(y_test, predictions)
             print(classification_report(y_test, predictions, digits=3))
             tn, fp, fn, tp = confusion_matrix(y_test, predictions).ravel()
             print('tn, fp, fn, tp', tn, fp, fn, tp)
+            print(clf.feature_importances_)
             print('--------------------------------------------------------')
             print(classification_report(y_test, predictions2, digits=3))
             tn, fp, fn, tp = confusion_matrix(y_test, predictions2).ravel()
@@ -405,12 +439,14 @@ def extract_features(defactoNL_full_path_file):
         import os
         from defacto.model_nl import ModelNL
         with open(defactoNL_full_path_file, 'rb') as handle:
+            print(':: processing ' + defactoNL_full_path_file)
             defactoNL = pickle.load(handle)
             X = []
             y = []
             if defactoNL.error_on_extract_triples is True:
                 print('error on defacto triple extraction: ', defactoNL.error_message)
             else:
+                print('defacto triple extraction OK ')
                 for proof in defactoNL.proofs:
                     y.append(1)
                     X.append(_extract_features(proof, defactoNL.claim, defactoNL.triples))
@@ -419,11 +455,13 @@ def extract_features(defactoNL_full_path_file):
                     y.append(0)
                     X.append(_extract_features(non_proof, defactoNL.claim, defactoNL.triples))
 
-                assert len(X) == len(y)
-                return (X, y)
+                if len(X) == len(y):
+                    return (X, y)
+                else:
+                    raise Exception('X and y have different size!')
 
     except Exception as e:
-        print('-- error ', repr(e))
+        print('-- extract features error ', repr(e))
 
 def export_training_data_proof_detection():
     import glob
@@ -461,6 +499,7 @@ def export_training_data_proof_detection():
 
     except Exception as e:
         print('error export_training_data_proof_detection()', repr(e))
+
 
 def export_defacto_models():
     try:
@@ -504,7 +543,7 @@ def save_defacto_model(fever_id, claim, label, evidences_train):
 
         # extracting sentences generically
         for evidence_meta in evidences_train:  # train file
-            filename = evidence_meta[2]
+            filename = encode(evidence_meta[2])
             id_sentence_supports_refutes = evidence_meta[3]
             if filename not in defactoNL.external_documents_names:
                 defactoNL.external_documents_names.append(filename)
@@ -575,24 +614,15 @@ if __name__ == '__main__':
         ROOT_PATH = os.getcwd() + "/"
         print(' --> root: ', ROOT_PATH)
         MAX_TRAINING_DATA = 100000
-        MODEL_TEST_SIZE = 0.3
+        MODEL_TEST_SIZE = 0.15
 
         args = sys.argv
         print(args)
-        print(args[1])
 
-
-        if args[1] == 'prod':
-            PATH_WIKIPAGES = '/data/defacto/github/fever/data/wiki-pages/wiki-pages-split/'
-            TRAIN_FILE = "/data/defacto/github/fever/data/subsample_train_relevant_docs.jsonl"
-            DEFACTO_OUTPUT_FOLDER = 'defacto/defacto_models/'
-        else:
-            if len(args) == 0:
-                args = ['dev', '0', '1', '2']
-            PATH_WIKIPAGES = '/Users/diegoesteves/Github/factchecking/DeFacto/python/defacto/'
-            TRAIN_FILE = "defacto/small_train.jsonl"
-            DEFACTO_OUTPUT_FOLDER = 'defacto/defacto_models/'
-
+        DEFACTO_OUTPUT_FOLDER = 'defacto/defacto_models/'
+        args = ['dev', '2']
+        PATH_WIKIPAGES = '/home/guest/git/DeFactoNLP/data/wiki-pages-split/'
+        TRAIN_FILE = "/home/guest/git/DeFactoNLP/data/subsample_train_relevant_docs.jsonl"
 
         if '0' in args:
             print('=======================================================================================')

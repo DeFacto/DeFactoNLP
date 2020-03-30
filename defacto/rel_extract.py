@@ -4,7 +4,8 @@ from defacto.definitions import CLAUSIE_PATH, STANFORD_CORE_MODEL_PATH, STANFORD
 from nltk.parse.stanford import StanfordParser
 from nltk.tree import ParentedTree, Tree
 from nltk.stem import WordNetLemmatizer
-from pycorenlp import *
+#from pycorenlp import *
+
 
 def get_sentences_from_document(text):
     return sent_tokenize(text)
@@ -38,7 +39,6 @@ class TripleExtraction_StanfordOpenIE(object):
             return out
         except Exception as error:
             raise error
-
 
 
 class TripleExtraction_Rusu(object):
@@ -123,11 +123,12 @@ class TripleExtraction_Rusu(object):
         o = self.find_object(t)
         return (s, p, o)
 
+
 class TripleExtraction_ClausIE(object):
 
     def __init__(self):
         try:
-            self.cl = ClausIE.get_instance(jar_filename='/data/defacto/github/fever/clausie/clausie/clausie.jar')
+            self.cl = ClausIE.get_instance(jar_filename='/home/guest/git/DeFactoNLP/clausie/clausie.jar')
         except Exception as error:
             raise error
 
@@ -137,7 +138,7 @@ class TripleExtraction_ClausIE(object):
             return triples
         except:
             raise
-
+'''
 if __name__ == '__main__':
 
     try:
@@ -164,3 +165,4 @@ if __name__ == '__main__':
 
     except Exception as e:
         print(e)
+'''
