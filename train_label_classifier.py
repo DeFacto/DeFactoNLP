@@ -11,10 +11,7 @@ from sklearn.preprocessing import MinMaxScaler, Normalizer
 from sklearn.metrics import classification_report
 from sklearn.ensemble import RandomForestClassifier
 
-labeltoint = {}
-labeltoint['SUPPORTS'] = 0
-labeltoint['REFUTES'] = 1
-labeltoint['NOT ENOUGH INFO'] = 2
+labeltoint = {'SUPPORTS': 0, 'REFUTES': 1, 'NOT ENOUGH INFO': 2}
 intolabel = ['SUPPORTS', 'REFUTES', 'NOT ENOUGH INFO']
 
 
@@ -37,6 +34,7 @@ def populate_train(gold_train, entailment_predictions_train):
         support_max_conf_score = 0.0
         refute_max_conf_score = 0.0
         nei_max_conf_score = 0.0
+        nei_min_conf_score = 1.0
         evidence_so_far = []
         for line in entailment_results_file:
             line = json.loads(line)
@@ -65,7 +63,10 @@ def populate_train(gold_train, entailment_predictions_train):
             if nei_max_conf_score < line["label_probs"][2]:
                 nei_max_conf_score = line["label_probs"][2]
 
-        features = [nei_max_conf_score, support_max_conf_score, refute_max_conf_score,
+            if nei_min_conf_score > line["label_probs"][2]:
+                nei_min_conf_score = line["label_probs"][2]
+
+        features = [nei_max_conf_score, support_max_conf_score, refute_max_conf_score, nei_min_conf_score,
                     nei_count, nei_confidence, support_count, support_confidence, refute_count, refute_confidence]
 
         if nei_count != 0:
@@ -96,9 +97,7 @@ def predict_test(predictions_test, entailment_predictions_test, new_predictions_
     previous_predictions = jsonlines.open(predictions_test)
     with jsonlines.open(new_predictions_file, mode='w') as writer:
         for pred in previous_predictions:
-            new_pred = {}
-            new_pred['id'] = pred['id']
-            new_pred['predicted_evidence'] = []
+            new_pred = {'id': pred['id'], 'predicted_evidence': []}
             entailment_results_file = entailment_predictions_test + "/claim_" + str(i) + ".json"
             entailment_results_file = codecs.open(entailment_results_file, "r", "utf-8").readlines()
             support_evidence = []
@@ -116,6 +115,7 @@ def predict_test(predictions_test, entailment_predictions_test, new_predictions_
             support_max_conf_score = 0.0
             refute_max_conf_score = 0.0
             nei_max_conf_score = 0.0
+            nei_min_conf_score = 1.0
             for line in entailment_results_file:
                 line = json.loads(line)
                 evi = [line['premise_source_doc_id'], line['premise_source_doc_line_num']]
@@ -144,11 +144,13 @@ def predict_test(predictions_test, entailment_predictions_test, new_predictions_
                     refute_max_conf_score = line["label_probs"][1]
                 if nei_max_conf_score < line["label_probs"][2]:
                     nei_max_conf_score = line["label_probs"][2]
+                if nei_min_conf_score > line["label_probs"][2]:
+                    nei_min_conf_score = line["label_probs"][2]
             # print(support_scores)
             # print(support_evidence)
             # print(support_count)
 
-            features = [nei_max_conf_score, support_max_conf_score, refute_max_conf_score,
+            features = [nei_max_conf_score, support_max_conf_score, refute_max_conf_score, nei_min_conf_score,
                         nei_count, nei_confidence, support_count, support_confidence, refute_count, refute_confidence]
 
             if nei_count != 0:
@@ -174,13 +176,11 @@ def predict_test(predictions_test, entailment_predictions_test, new_predictions_
             if new_pred['predicted_label'] == "SUPPORTS":
                 if support_count == 0:
                     new_pred['predicted_label'] = "NOT ENOUGH INFO"
-                    new_pred['predicted_evidence'] = []
                 else:
                     new_pred['predicted_evidence'] = support_evidence[:5]
             elif new_pred['predicted_label'] == "REFUTES":
                 if refute_count == 0:
                     new_pred['predicted_label'] = "NOT ENOUGH INFO"
-                    new_pred['predicted_evidence'] = []
                 else:
                     new_pred['predicted_evidence'] = refute_evidence[:5]
             else:
@@ -191,19 +191,19 @@ def predict_test(predictions_test, entailment_predictions_test, new_predictions_
 
 predictions_train = "predictions/predictions_train.jsonl"
 
-gold_train = "data/subsample_train_relevant_docs.jsonl"
-entailment_predictions_train = "rte/entailment_predictions_train"
+gold_train = "data/subsample_train_concatenation_oie_sentence_final.jsonl"
+entailment_predictions_train = "rte/entailment_predictions_train_concatenate_oie_triple"
 
-predictions_test = "data/dev.jsonl"
-entailment_predictions_test = "rte/entailment_predictions_dev_ner"
-new_predictions_file = "predictions/new_predictions_dev_ner.jsonl"
+predictions_test = "data/dev_sentence_selection_final.jsonl"
+entailment_predictions_test = "rte/entailment_predictions"
+new_predictions_file = "predictions/new_dev_bert_test.jsonl"
 
 x_train, y_train = populate_train(gold_train, entailment_predictions_train)
 # x_test = x_train[7000:]
 # y_test = y_train[7000:]
 
-# x_train = x_train[:7000]
-# y_train = y_train[:7000]
+x_train = x_train[:2500]
+y_train = y_train[:2500]
 x_train = np.asarray(x_train)
 y_train = np.asarray(y_train)
 
@@ -224,6 +224,22 @@ clf.fit(x_train, y_train)
 print("Fit Done")
 joblib.dump(clf, 'label_classifier.pkl')
 # clf = joblib.load('filename.pkl')
+
+# estimator = clf.estimators_[5]
+# from sklearn.tree import export_graphviz
+# print(estimator)
+# # Export as dot file
+# export_graphviz(estimator, out_file='tree.dot',
+#                 feature_names=['nei_max_conf_score', 'support_max_conf_score', 'refute_max_conf_score',
+#                                'nei_count', 'nei_confidence', 'support_count', 'support_confidence',
+#                                'refute_count', 'refute_confidence','avg_nei', 'avg_sup', 'avg_ref'],
+#                 class_names=['0', '1', '2'],
+#                 rounded=True, proportion=False,
+#                 precision=2, filled=True)
+#
+# # Convert to png using system command (requires Graphviz)
+# from subprocess import call
+# call(['dot', '-Tpng', 'tree.dot', '-o', 'tree.png', '-Gdpi=600'])
 
 # print(clf.score(x_test,y_test))
 # print(clf.score(x_train,y_train))

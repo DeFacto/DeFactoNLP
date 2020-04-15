@@ -22,6 +22,10 @@ class Claim:
         self.line = []
         self.predicted_line = []
         self.predicted_evidence_bert = []
+        self.label = ""
+
+    def add_gold_line(self, line):
+        self.line = line
 
     def add_gold_evidence(self, document, evidence, line_num):
         evidence = Evidence(document, evidence, line_num)
@@ -188,6 +192,9 @@ class Claim:
         recall_doc_sent_correct = 0
         total_claims_doc_found = 0
 
+        total_refuted = 0
+        total_supported = 0
+
         for claim in claims:
             if not claim.verifiable:
                 continue
@@ -199,6 +206,10 @@ class Claim:
             recall_sent_correct += sent_correct / (len(claim.get_gold_pairs()) + 0.000001)
 
             if claim.check_evidence_found_doc(_type=_type):
+                if claim.label == "SUPPORTS":
+                    total_supported += 1
+                elif claim.label == "REFUTES":
+                    total_refuted += 1
                 precision_doc_sent_correct += sent_correct / (len(claim.get_predicted_evidence(_type=_type)) + 0.000001)
                 recall_doc_sent_correct += sent_correct / (len(claim.get_gold_pairs()) + 0.000001)
                 total_claims_doc_found += 1
@@ -208,5 +219,8 @@ class Claim:
 
         precision_doc_sent_correct /= total_claims_doc_found
         recall_doc_sent_correct /= total_claims_doc_found
+
+        print(total_supported)
+        print(total_refuted)
 
         return precision_sent_correct, recall_sent_correct, precision_doc_sent_correct, recall_doc_sent_correct

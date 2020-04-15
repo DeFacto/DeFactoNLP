@@ -1,4 +1,3 @@
-
 '''
 ------------------------------------------------------------------------------------------------------------------
 UTILS
@@ -9,24 +8,47 @@ import sklearn
 from sklearn.externals import joblib
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
+from collections import Counter
+import spacy
+import string
+from nltk.corpus import stopwords
+import numpy as np
+import re, math
 
+WORD = re.compile(r'\w+')
+
+neg_keyword_set = {"don't", "do not", "never", "nothing", "nowhere", "noone", "none", "not",
+                   "hasn't", "has not", "hadn't", "had not", "haven't", "have not", "can't", "can not",
+                   "couldn't", "could not", "shouldn't", "should not", "won't", "will not",
+                   "wouldn't", "would not", "doesn't", "does not",
+                   "didn't", "did not", "isn't", "is not", "aren't", "are not", "ain't", "am not"}
+
+stopwords = stopwords.words('english')
+punctuations = string.punctuation
+# nlp = spacy.load('en_core_web_sm') # no vectors
+nlp = spacy.load('en_core_web_md')
+
+
+# lg ?
 
 def get_cosine(vec1, vec2):
-     intersection = set(vec1.keys()) & set(vec2.keys())
-     numerator = sum([vec1[x] * vec2[x] for x in intersection])
+    intersection = set(vec1.keys()) & set(vec2.keys())
+    numerator = sum([vec1[x] * vec2[x] for x in intersection])
 
-     sum1 = sum([vec1[x]**2 for x in vec1.keys()])
-     sum2 = sum([vec2[x]**2 for x in vec2.keys()])
-     denominator = math.sqrt(sum1) * math.sqrt(sum2)
+    sum1 = sum([vec1[x] ** 2 for x in vec1.keys()])
+    sum2 = sum([vec2[x] ** 2 for x in vec2.keys()])
+    denominator = math.sqrt(sum1) * math.sqrt(sum2)
 
-     if not denominator:
+    if not denominator:
         return 0.0
-     else:
+    else:
         return float(numerator) / denominator
 
+
 def text_to_vector(text):
-     words = WORD.findall(text)
-     return Counter(words)
+    words = WORD.findall(text)
+    return Counter(words)
+
 
 def levenshtein_distance(str1, str2):
     m = len(str1)
@@ -49,21 +71,25 @@ def levenshtein_distance(str1, str2):
     ratio = (lensum - ldist) / lensum
     return (ldist, ratio)
 
+
 def _get_vectors(*strs):
     text = [t for t in strs]
     vectorizer = CountVectorizer(text)
     vectorizer.fit(text)
     return vectorizer.transform(text).toarray()
 
+
 def get_cosine_sim(*strs):
     vectors = [t for t in _get_vectors(*strs)]
     return cosine_similarity(vectors)
+
 
 def get_jaccard_sim(str1, str2):
     a = set(str1.split())
     b = set(str2.split())
     c = a.intersection(b)
     return float(len(c)) / (len(a) + len(b) - len(c))
+
 
 def smith_waterman_distance(seq1, seq2, match=3, mismatch=-1, insertion=-1, deletion=-1, normalize=1):
     if len(seq2) > len(seq1): seq1, seq2 = seq2, seq1
@@ -78,14 +104,15 @@ def smith_waterman_distance(seq1, seq2, match=3, mismatch=-1, insertion=-1, dele
             )
     return np.max(mat) / (len(seq2) * match) if normalize else np.max(mat)
 
+
 '''
 ------------------------------------------------------------------------------------------------------------------
 DeFacto
 ------------------------------------------------------------------------------------------------------------------
 '''
 
-def encode(x):
 
+def encode(x):
     x = x.replace(" (", "-LRB-")
     x = x.replace(") ", "-RRB-")
     x = x.replace("/", "-SLH-")
@@ -98,24 +125,24 @@ def encode(x):
 
 def getDocContentFromFile(doc_filename):
     try:
-        content=[]
-        entities=[]
+        content = []
+        entities = []
         fullpath = PATH_WIKIPAGES + doc_filename + ".json"
         with open(fullpath) as f:
             fileContent = json.load(f)
-        #file = codecs.open(PATH_WIKIPAGES + doc_filename + ".json")
-        #fileContent = json.load(file)
+            # file = codecs.open(PATH_WIKIPAGES + doc_filename + ".json")
+            # fileContent = json.load(file)
             for lines in fileContent["lines"]:
                 x = lines["content"].strip()
                 x = x.replace("-LRB-", " (")
-                x = x.replace("-RRB-",") ")
+                x = x.replace("-RRB-", ") ")
                 x = x.replace("-SLH-", "/")
                 x = x.replace("-LSB-", " [")
                 x = x.replace("-RSB-", "] ")
                 x = x.replace("_", " ")
                 x = x.replace("-COLON-", ":")
                 content.append(x)
-                if lines["namedEntitiesList"] is not None and len(lines["namedEntitiesList"])>0:
+                if lines["namedEntitiesList"] is not None and len(lines["namedEntitiesList"]) > 0:
                     entities.append(list(set(lines["namedEntitiesList"])))
                 else:
                     entities.append([])
@@ -145,19 +172,20 @@ def substring_indexes(substring, string):
             break
         yield last_found
 
+
 def _extract_features(proof_candidate, claim, claim_spo_lst):
-    '''
+    """
 
     :param proof_candidate: either a proof or just a sentence (not proof)
     :param claim: input claim
     :param claim_spo_lst: triples extracted from a claim
     :return:
-    '''
+    """
     try:
 
         MAX_DIST = 99999
         THETA_RELAX = 0.9
-        X=[]
+        X = []
 
         proof_doc = nlp(proof_candidate)
 
@@ -278,7 +306,6 @@ def _extract_features(proof_candidate, claim, claim_spo_lst):
                 for neg in neg_keyword_set:
                     idx_neg.extend(substring_indexes(neg, proof_doc_text_lower))
 
-
                 for i_s in idx_s:
                     for i_o in idx_o:
                         if dist_s_o > (abs(i_s - i_o)): dist_s_o = abs(i_s - i_o)
@@ -291,12 +318,11 @@ def _extract_features(proof_candidate, claim, claim_spo_lst):
                                 if dist_tok_neg_p_min > (abs(i_p - i_neg)):
                                     dist_tok_neg_p_min = abs(i_p - i_neg)
 
-
             # relaxed string search
             index_max_jac_subject = -1
             index_max_jac_object = -1
             for i in range(len(proof_doc)):
-                token=proof_doc[i].text
+                token = proof_doc[i].text
                 _jts = get_jaccard_sim(token.lower(), triple_s_clean)
                 if max_jac_sim_subject < _jts:
                     max_jac_sim_subject = _jts
@@ -311,9 +337,7 @@ def _extract_features(proof_candidate, claim, claim_spo_lst):
                     if dist_indexes_relaxed > (abs(index_max_jac_subject - index_max_jac_object)):
                         dist_indexes_relaxed = abs(index_max_jac_subject - index_max_jac_object)
 
-
                 if s_o_rlx_found == 0: s_o_rlx_found = (1 if _jts >= THETA_RELAX and _jto >= THETA_RELAX else 0)
-
 
         X.append(swd_max)
         X.append(jac_max)
@@ -338,12 +362,11 @@ def _extract_features(proof_candidate, claim, claim_spo_lst):
         X.append(dist_indexes_relaxed)
         X.append(s_o_rlx_found)
 
-
         return X
 
     except Exception as e:
+        print(e)
         raise e
-
 
 
 def train_model():
@@ -393,8 +416,8 @@ def train_model():
             print('training the classifier...')
             clf = RandomForestClassifier(n_jobs=-1, n_estimators=100)
             clf2 = AdaBoostClassifier(DecisionTreeClassifier(max_depth=1),
-                         algorithm="SAMME",
-                         n_estimators=200)
+                                      algorithm="SAMME",
+                                      n_estimators=200)
             model = clf.fit(X_train, y_train)
             model2 = clf2.fit(X_train, y_train)
             predictions = model.predict(X_test)
@@ -419,6 +442,7 @@ def train_model():
     except Exception as e:
         print(repr(e))
 
+
 '''
 out = predict('aniketh was born in rio', [['dddasd'], ['asdsadasd']])
 = [1, 0]
@@ -431,7 +455,6 @@ def predict(claim, sentences):
     pred = model.predict(X)
     return pred
 '''
-
 
 
 def extract_features(defactoNL_full_path_file):
@@ -463,16 +486,17 @@ def extract_features(defactoNL_full_path_file):
     except Exception as e:
         print('-- extract features error ', repr(e))
 
+
 def export_training_data_proof_detection():
     import glob
 
     try:
 
-        job_args=[]
+        job_args = []
         i = 0
-        #f = Path(ROOT_PATH + DEFACTO_OUTPUT_FOLDER + 'features.proof.train')
-        #print(f)
-        #if not f.exists():
+        # f = Path(ROOT_PATH + DEFACTO_OUTPUT_FOLDER + 'features.proof.train')
+        # print(f)
+        # if not f.exists():
         for file in glob.glob(ROOT_PATH + DEFACTO_OUTPUT_FOLDER + "*.pkl"):
             if i > MAX_TRAINING_DATA:
                 break
@@ -505,12 +529,12 @@ def export_defacto_models():
     try:
         job_args = []
         print('searching .pkl files in: ', ROOT_PATH + DEFACTO_OUTPUT_FOLDER)
-        i=0
+        i = 0
         with jsonlines.open(TRAIN_FILE, mode='r') as reader:
             for obj in reader:
                 if i > MAX_TRAINING_DATA:
                     break
-                i+=1
+                i += 1
                 f = Path(ROOT_PATH + DEFACTO_OUTPUT_FOLDER + 'defacto_' + str(obj["id"]) + '.pkl')
                 if not f.exists() and obj["label"] != 'NOT ENOUGH INFO':
                     job_args.append((obj["id"], obj["claim"], obj["label"], obj["evidence"][0]))
@@ -527,6 +551,7 @@ def export_defacto_models():
 
     except Exception as e:
         print(e)
+
 
 def save_defacto_model(fever_id, claim, label, evidences_train):
     try:
@@ -561,7 +586,7 @@ def save_defacto_model(fever_id, claim, label, evidences_train):
         assert defactoNL.sentences is not None and len(defactoNL.sentences) > 0
 
         path = ROOT_PATH + DEFACTO_OUTPUT_FOLDER + 'defacto_' + str(defactoNL.id) + '.pkl'
-        #print(path)
+        # print(path)
         with open(path, 'wb') as handle:
             pickle.dump(defactoNL, handle, protocol=pickle.HIGHEST_PROTOCOL)
         return 0
@@ -580,36 +605,17 @@ if __name__ == '__main__':
         import sys
         import os
         import codecs
-        import numpy as np
         import json
         import jsonlines
         import pickle
         from multiprocessing.dummy import Pool
-        import spacy
 
-        # nlp = spacy.load('en_core_web_sm') # no vectors
-        nlp = spacy.load('en_core_web_md')
-        # lg ?
-
-        from collections import Counter
         from sklearn.feature_extraction.text import CountVectorizer
         from sklearn.metrics.pairwise import cosine_similarity
-        import re, math
+
         import string
         from pathlib import Path
 
-        WORD = re.compile(r'\w+')
-
-        neg_keyword_set = {"don't", "do not", "never", "nothing", "nowhere", "noone", "none", "not",
-                           "hasn't", "has not", "hadn't", "had not", "haven't", "have not", "can't", "can not",
-                           "couldn't", "could not", "shouldn't", "should not", "won't", "will not",
-                           "wouldn't", "would not", "doesn't", "does not",
-                           "didn't", "did not", "isn't", "is not", "aren't", "are not", "ain't", "am not"}
-
-        from nltk.corpus import stopwords
-
-        stopwords = stopwords.words('english')
-        punctuations = string.punctuation
 
         ROOT_PATH = os.getcwd() + "/"
         print(' --> root: ', ROOT_PATH)

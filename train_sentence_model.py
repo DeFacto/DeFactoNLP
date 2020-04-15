@@ -11,7 +11,7 @@ import json
 import jsonlines
 import tqdm
 
-wiki_split_docs_dir = "data/wiki-pages-split"
+wiki_split_docs_dir = "../wiki-pages-split"
 
 
 def get_sentence(doc, line_num):
@@ -40,12 +40,19 @@ def get_sentence(doc, line_num):
     sentence_2 = _lines[line_num]
     if sentence != sentence_2:
         print("Sanity check failed!!!!!!!!!!!!!!!!!!!!!!")
+
+    if len(_non_related_sentences):
+        _non_related_sentences = list(_non_related_sentences)[0]
+    else:
+        _non_related_sentences = "ERROR404"
+    #print(_non_related_sentences)
+    #print(len(_non_related_sentences))
     return sentence, _non_related_sentences
 
 
 def get_labels():
     # contradiction -> REFUTES # entailment -> SUPPORTS # neutral -> Not Enough Information
-    return {"refutes": 0, "supports": 1, "neutral": 2}
+    return {"refutes": 0, "supports": 0, "neutral": 2}
 
 
 def get_num_labels():
@@ -79,7 +86,7 @@ for lines in dev_file:
 
 model_name = 'bert-base-nli-mean-tokens'
 batch_size = 16
-num_epochs = 4
+num_epochs = 1
 train_num_labels = get_num_labels()
 model_save_path = 'output/subsample_train-' \
                   + model_name + '-' + datetime.now().strftime("%Y-%m ""-%d_%H-%M-%S")
@@ -88,8 +95,12 @@ model_save_path = 'output/subsample_train-' \
 # Load a pre-trained sentence transformer model
 model = SentenceTransformer(model_name)
 
+STOP = -10
+
 logging.info("Reading Subsample of Train Dataset")
 examples_train = []
+neutral = 0
+non_neutral = 0
 for example in train_set:
     sentence_a = example['claim']
     evidences = example['evidence']
@@ -112,14 +123,32 @@ for example in train_set:
             if sentence_b == "-1":
                 # page failed to load
                 continue
-            all_non_related_sentences |= non_related_sentences
+            #all_non_related_sentences |= non_related_sentences
             examples_train.append(InputExample(example['id'], texts=[sentence_a, sentence_b], label=map_label(label)))
-
+            print(sentence_b)
+            print(non_related_sentences)
+            if non_related_sentences != "ERROR404":
+                examples_train.append(InputExample(example['id'],
+                                               texts=[sentence_a, non_related_sentences],
+                                               label=map_label("neutral")))
+                neutral += 1
+            non_neutral += 1
+        all_non_related_sentences = list(all_non_related_sentences)
         for non_related_sentence in all_non_related_sentences:
-            examples_train.append(InputExample(example['id'],
+
+            #print(non_related_sentence)
+            if non_related_sentence != "" and False:
+                print("UPSI")
+                examples_train.append(InputExample(example['id'],
                                                texts=[sentence_a, non_related_sentence],
                                                label=map_label("neutral")))
+    if STOP == 0:
+        break
+    else:
+        STOP -= 1
 
+print(non_neutral)
+print(neutral)
 logging.info("Train Data Loaded")
 train_data = SentencesDataset(examples_train, model)
 train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
@@ -129,6 +158,7 @@ train_loss = losses.SoftmaxLoss(model=model,
 
 logging.info("Reading Dev Dataset")
 examples_dev = []
+STOP = 500
 for example in dev_set:
     sentence_a = example['claim']
     evidences = example['evidence']
@@ -149,13 +179,18 @@ for example in dev_set:
             if sentence_b == "-1":
                 # page failed to load
                 continue
-            all_non_related_sentences |= non_related_sentences
+            #all_non_related_sentences |= non_related_sentences
             examples_dev.append(InputExample(example['id'], texts=[sentence_a, sentence_b], label=1))
 
-        for non_related_sentence in all_non_related_sentences:
-            examples_dev.append(InputExample(example['id'],
-                                         texts=[sentence_a, non_related_sentence],
-                                         label=0))
+        #for non_related_sentence in all_non_related_sentences:
+            if non_related_sentences != "ERROR404":
+                examples_dev.append(InputExample(example['id'],
+                                             texts=[sentence_a, non_related_sentences],
+                                             label=0))
+    if STOP == 0:
+        break
+    else:
+        STOP -= 1
 
 logging.info("Dev Data Loaded")
 dev_data = SentencesDataset(examples=examples_dev, model=model)
@@ -163,9 +198,9 @@ dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
 evaluator = EmbeddingSimilarityEvaluator(dev_dataloader)
 
 # Configure the training
-num_epochs = 1
+num_epochs = 3
 
-warmup_steps = math.ceil(len(train_dataloader) * num_epochs / batch_size * 0.1)  #1 0% of train data for warm-up
+warmup_steps = math.ceil(len(train_dataloader) * num_epochs / batch_size * 0.1)  # 1 0% of train data for warm-up
 logging.info("Warmup-steps: {}".format(warmup_steps))
 
 # Train the model

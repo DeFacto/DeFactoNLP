@@ -48,8 +48,8 @@ def get_docs_with_oie(claim, wiki_entities,client):
                 ents.add(sub.text)
             for obj in clause['O']:
                 ents.add(obj.text)
-    print(ner_spacy)
-    print(ents)
+    # print(ner_spacy)
+    # print(ents)
 
     if len(ents) > 4:
         ents = clean_entities(ents)
@@ -88,7 +88,7 @@ def getClosestDocs(wiki_entities, entities):
         entities[i] = str(entities[i])
     selected_docs = set()
     for ent in entities:
-        print(ent)
+        # print(ent)
         ent = ud.normalize('NFC', ent)
 
         best_1 = 1.1
@@ -105,24 +105,24 @@ def getClosestDocs(wiki_entities, entities):
         for we in wiki_entities:
             dists.append((distance(we, ent), we))
         b = datetime.datetime.now()
-        print(b-a)
+        # print(b-a)
 
         pair_1 = min(dists, key=operator.itemgetter(0))
-        dists.remove(pair_1)
-        pair_2 = min(dists, key=operator.itemgetter(0))
+        # dists.remove(pair_1)
+        # pair_2 = min(dists, key=operator.itemgetter(0))
 
         best_match_1 = pair_1[1]
-        best_match_2 = pair_2[1]
+        # best_match_2 = pair_2[1]
 
         best_match_1 = best_match_1.replace(" ", "_")
         best_match_1 = best_match_1.replace("/", "-SLH-")
         best_match_1 = best_match_1.replace("(", "-LRB-")
         best_match_1 = best_match_1.replace(")", "-RRB-")
 
-        best_match_2 = best_match_2.replace(" ", "_")
-        best_match_2 = best_match_2.replace("/", "-SLH-")
-        best_match_2 = best_match_2.replace("(", "-LRB-")
-        best_match_2 = best_match_2.replace(")", "-RRB-")
+        # best_match_2 = best_match_2.replace(" ", "_")
+        # best_match_2 = best_match_2.replace("/", "-SLH-")
+        # best_match_2 = best_match_2.replace("(", "-LRB-")
+        # best_match_2 = best_match_2.replace(")", "-RRB-")
 
         best_match_3 = best_match_3.replace(" ", "_")
         best_match_3 = best_match_3.replace("/", "-SLH-")
@@ -130,9 +130,10 @@ def getClosestDocs(wiki_entities, entities):
         best_match_3 = best_match_3.replace(")", "-RRB-")
 
         selected_docs.add(best_match_1)
-        selected_docs.add(best_match_2)
+        # selected_docs.add(best_match_2)
         # selected_docs.append(best_match_3)
-        print(selected_docs)
+        # print(selected_docs)
+    print(selected_docs)
     return list(selected_docs), entities
 
 
@@ -146,7 +147,32 @@ def getRelevantDocs(claim, wiki_entities, ner_module="spaCy", nlp=None):  # ,mat
     else:
         print("Error: Incorrect Document Retrieval Specifications")
         return
-    return getClosestDocs(wiki_entities, entities)
+    return get_closest_docs_ner(wiki_entities, entities)
+
+
+def get_closest_docs_ner(wiki_entities,entities):
+    entities = list(entities)
+    for i in range(len(entities)):
+        entities[i] = str(entities[i])
+    selected_docs = []
+    for ent in entities:
+        ent = ud.normalize('NFC',ent)
+        if ent in wiki_entities:
+            best_match = ent
+        else:
+            best = 11111111111
+            best_match = ""
+            for we in wiki_entities:
+                dist = distance(we,ent)
+                if dist < best:
+                    best = dist
+                    best_match = we
+        best_match = best_match.replace(" ","_")
+        best_match = best_match.replace("/","-SLH-")
+        best_match = best_match.replace("(","-LRB-")
+        best_match = best_match.replace(")","-RRB-")
+        selected_docs.append(best_match)
+    return selected_docs, entities
 
 
 def getDocContent(wiki_folder, doc_id):
@@ -165,16 +191,16 @@ def getDocContent(wiki_folder, doc_id):
 
 """
 def getDocContentFromFile(wiki_folder, doc_filename, doc_id):
-	
-	fileContent= jsonlines.open(wiki_folder + "/" + doc_filename)
-	
-	for doc in fileContent:
-		
-		if doc["id"] == doc_id:
-			doc["fileId"] = doc_filename
-			return doc
-		
-	return None
+    
+    fileContent= jsonlines.open(wiki_folder + "/" + doc_filename)
+    
+    for doc in fileContent:
+        
+        if doc["id"] == doc_id:
+            doc["fileId"] = doc_filename
+            return doc
+        
+    return None
 """
 
 

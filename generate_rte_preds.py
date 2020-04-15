@@ -8,15 +8,20 @@ import os
 import codecs
 import unicodedata as ud
 from openie import StanfordOpenIE
+import gensim
 
 
-relevant_sentences_file = "data/dev_concatenation.jsonl"
-concatenate_file = "data/dev_concatenation_oie_2.jsonl"
+relevant_sentences_file = "data/dev_sentence_selection.jsonl"
+ner_file = "data/subsample_train_concatenation_2_1.jsonl"
+concatenate_file = "data/dev_sentence_selection_final.jsonl"
+
 instances = []
 zero_results = 0
 INCLUDE_NER = False
-INCLUDE_OIE = True
-RUN_RTE = False
+INCLUDE_OIE = False
+RUN_RTE = True
+RUN_TRIPLE_BASED = False
+RUN_SENTENCE_BERT = True
 
 relevant_sentences_file = jsonlines.open(relevant_sentences_file)
 if RUN_RTE:
@@ -27,18 +32,25 @@ if RUN_RTE:
     predictor = Predictor.from_archive(model)
 
 wiki_dir = "data/wiki-pages/wiki-pages"
-wiki_split_docs_dir = "data/wiki-pages-split"
+wiki_split_docs_dir = "../wiki-pages-split"
 
 claim_num = 1
 
 wiki_entities = os.listdir(wiki_split_docs_dir)
+# sum = 0
 for i in range(len(wiki_entities)):
     wiki_entities[i] = wiki_entities[i].replace("-SLH-", "/")
     wiki_entities[i] = wiki_entities[i].replace("_", " ")
     wiki_entities[i] = wiki_entities[i][:-5]
     wiki_entities[i] = wiki_entities[i].replace("-LRB-", "(")
     wiki_entities[i] = wiki_entities[i].replace("-RRB-", ")")
-    # tokens_sentence = gensim.utils.simple_preprocess(wiki_entities[i])
+#     tokens_sentence = gensim.utils.simple_preprocess(wiki_entities[i])
+#     num = len(tokens_sentence)
+#     #print(num)
+#     sum += num
+# print(sum/len(wiki_entities))
+# exit(0)
+
     # wiki_entities[i] = ' '.join(map(str, tokens_sentence))
 
 print("Wiki entities successfully parsed")
@@ -64,17 +76,30 @@ def run_rte(claim, evidence, claim_num):
 
 
 with StanfordOpenIE() as client:
-    with jsonlines.open(concatenate_file, mode='w') as writer_c:
+    with jsonlines.open(concatenate_file, mode='w') as writer_c, \
+            jsonlines.open(ner_file, mode='w') as writer_n:
         for i in range(0, len(instances)):
             claim = instances[i]['claim']
             print(claim)
-            evidence = instances[i]['predicted_sentences']
+            if RUN_TRIPLE_BASED:
+                if 'predicted_sentences_triple' in instances[i]:
+                    evidence = instances[i]['predicted_sentences_triple']
+                    print(evidence)
+                else:
+                    evidence = instances[i]['predicted_sentences']
+            elif RUN_SENTENCE_BERT:
+                if 'predicted_sentences_bert' in instances[i]:
+                    evidence = instances[i]['predicted_sentences_bert']
+                    print("hello" + str(evidence))
+                else:
+                    evidence = instances[i]['predicted_sentences']
+            else:
+                evidence = instances[i]['predicted_sentences']
             potential_evidence_sentences = []
 
             for sentence in evidence:
-                # print(sentence)
-                # print(sentence[0])
-                # load document from TF-IDF
+
+                # load document from sentence pair
                 relevant_doc = ud.normalize('NFC', sentence[0])
                 relevant_doc = relevant_doc.replace("/", "-SLH-")
                 file = codecs.open(wiki_split_docs_dir + "/" + relevant_doc + ".json", "r", "utf-8")
@@ -115,6 +140,7 @@ with StanfordOpenIE() as client:
 
                 instances[i]['predicted_pages_ner'] = relevant_docs
                 instances[i]['predicted_sentences_ner'] = predicted_evidence
+                writer_n.write(instances[i])
 
             if RUN_RTE:
                 preds = run_rte(claim, potential_evidence_sentences, claim_num)
@@ -132,8 +158,6 @@ with StanfordOpenIE() as client:
 
                 saveFile.close()
             claim_num += 1
-            # print(claim_num)
-            # print(instances[i])
 
             if INCLUDE_OIE:
                 relevant_docs, entities = doc_retrieval.get_docs_with_oie(claim, wiki_entities, client)
@@ -142,5 +166,6 @@ with StanfordOpenIE() as client:
 
             writer_c.write(instances[i])
             print("Claim number: " + str(i) + " of " + str(len(instances)))
+
 
 print("Number of Zero Sentences Found: " + str(zero_results))

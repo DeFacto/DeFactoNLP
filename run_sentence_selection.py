@@ -5,8 +5,8 @@ from sentence_transformers import SentenceTransformer
 import scipy.spatial
 from sklearn.metrics.pairwise import cosine_similarity
 
-wiki_split_docs_dir = "data/wiki-pages-split"
-relevant_docs_file = "data/dev_concatenation.jsonl"
+wiki_split_docs_dir = "../wiki-pages-split"
+relevant_docs_file = "data/dev_concatenation_oie.jsonl"
 relevant_sent_file = "data/dev_sentence_selection.jsonl"
 
 relevant_docs_file = jsonlines.open(relevant_docs_file)
@@ -38,8 +38,8 @@ def clean_sentence(_sentence):
     return _sentence
 
 
-# model = SentenceTransformer('bert-base-nli-mean-tokens')
-embedder = SentenceTransformer('bert-large-nli-mean-tokens')
+# embedder = SentenceTransformer('bert-base-nli-mean-tokens')
+embedder = SentenceTransformer('output/subsample_train-bert-base-nli-mean-tokens-2020-04 -10_02-34-36')
 # embedder = SentenceTransformer('bert-base-wikipedia-sections-mean-tokens')
 
 claims = []
@@ -84,7 +84,7 @@ with jsonlines.open(relevant_sent_file, mode='w') as writer_c:
 
         # create embeddings
         corpus_embeddings = embedder.encode(corpus)
-        query_embeddings = embedder.encode(claim['claim'])
+        query_embeddings = embedder.encode([claim['claim']])
 
         # get the n most similar sentences
         closest_n = 5
@@ -95,7 +95,7 @@ with jsonlines.open(relevant_sent_file, mode='w') as writer_c:
             # print(distances)
             # print(scipy.spatial.distance.cdist([query_embedding], corpus_embeddings, "cosine"))
             results = zip(range(len(distances)), distances)
-            results = sorted(results, key=lambda x: x[1])
+            results = sorted(results, key=lambda x: x[1], reverse=False)
 
             print("\n\n======================\n\n")
             print("Query:", query)
