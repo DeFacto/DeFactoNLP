@@ -9,19 +9,29 @@ import codecs
 import unicodedata as ud
 from openie import StanfordOpenIE
 import gensim
+import numpy as np
 
+from sklearn.externals import joblib
+from defacto.model_nl import ModelNL
+from proof_extraction_train import _extract_features
+from triple_sentence_selection import get_sentence, get_pairs_from_doc
 
-relevant_sentences_file = "data/dev_sentence_selection.jsonl"
-ner_file = "data/subsample_train_concatenation_2_1.jsonl"
-concatenate_file = "data/dev_sentence_selection_final.jsonl"
+defacto_clf = joblib.load('defacto/defacto_models/rfc.mod')
+
+relevant_sentences_file = "data/dev_relevant_docs.jsonl"
+ner_file = "data/dev_concatenation.jsonl"
+concatenate_file = "data/dev_concatenation_oie.jsonl"
 
 instances = []
 zero_results = 0
+
 INCLUDE_NER = False
-INCLUDE_OIE = False
-RUN_RTE = True
-RUN_TRIPLE_BASED = False
-RUN_SENTENCE_BERT = True
+INCLUDE_TRIPLE_BASED = False
+INCLUDE_SENTENCE_BERT = False
+RUN_DOC_TRIPLE_BASED = False
+RUN_SENT_TRIPLE_BASED = False
+RUN_RTE = False
+
 
 relevant_sentences_file = jsonlines.open(relevant_sentences_file)
 if RUN_RTE:
@@ -81,13 +91,14 @@ with StanfordOpenIE() as client:
         for i in range(0, len(instances)):
             claim = instances[i]['claim']
             print(claim)
-            if RUN_TRIPLE_BASED:
+
+            if INCLUDE_TRIPLE_BASED:
                 if 'predicted_sentences_triple' in instances[i]:
                     evidence = instances[i]['predicted_sentences_triple']
                     print(evidence)
                 else:
                     evidence = instances[i]['predicted_sentences']
-            elif RUN_SENTENCE_BERT:
+            elif INCLUDE_SENTENCE_BERT:
                 if 'predicted_sentences_bert' in instances[i]:
                     evidence = instances[i]['predicted_sentences_bert']
                     print("hello" + str(evidence))
@@ -96,6 +107,71 @@ with StanfordOpenIE() as client:
             else:
                 evidence = instances[i]['predicted_sentences']
             potential_evidence_sentences = []
+
+            # this will create document retrieval and sentence retrieval based on NER
+            if INCLUDE_NER:
+                relevant_docs, entities = doc_retrieval.getRelevantDocs(claim, wiki_entities, "spaCy",
+                                                                        nlp)
+                relevant_sentences = sentence_retrieval.getRelevantSentences(relevant_docs, entities,
+                                                                             wiki_split_docs_dir)
+                predicted_evidence = []
+                for sent in relevant_sentences:
+                    predicted_evidence.append((sent['id'], sent['line_num']))
+                    potential_evidence_sentences.append(sent['sentence'])
+                    evidence.append((sent['id'], sent['line_num']))
+
+                instances[i]['predicted_pages_ner'] = relevant_docs
+                instances[i]['predicted_sentences_ner'] = predicted_evidence
+                writer_n.write(instances[i])
+
+            # This will find every document using Triple Based approach
+            if RUN_DOC_TRIPLE_BASED:
+                relevant_docs, entities = doc_retrieval.get_docs_with_oie(claim, wiki_entities, client)
+                print(entities)
+                instances[i]['predicted_pages_oie'] = relevant_docs
+
+            if RUN_SENT_TRIPLE_BASED:
+                correct_sentences = set()
+                flag = False
+                try:
+                    defactoModel = None
+                    all_pairs = evidence
+                    all_pairs = [tuple(l) for l in all_pairs]
+                    if RUN_DOC_TRIPLE_BASED:
+                        documents = instances[i]['predicted_pages_oie']
+                        for doc in documents:
+                            pairs = get_pairs_from_doc(doc)
+                            all_pairs.extend(pairs)
+                    all_pairs = list(set(all_pairs))
+                    for pair in all_pairs:
+                        if defactoModel is None:
+                            defactoModel = ModelNL(claim=claim)
+                        sentence = get_sentence(pair[0], pair[1])
+                        if sentence == "":
+                            continue
+                        try:
+                            x = _extract_features(sentence, claim, defactoModel.triples)
+                            x = np.asarray(x)
+                            x = x.reshape(1, -1)
+                            y = defacto_clf.predict(x)
+                            defacto_class = y[0]
+                        except Exception as e:
+                            print("Error: " + str(e))
+                        if defacto_class == 0:
+                            continue
+                        else:
+                            correct_sentences.add(pair)
+                except Exception as e:
+                    print("Error")
+                    flag = True
+                if len(correct_sentences) > 0:
+                    correct_sentences = list(correct_sentences)
+                    instances[i]['predicted_sentences_triple'] = correct_sentences
+                else:
+                    if flag:
+                        print("NO PREDICTION!!!!")
+                    instances[i]['predicted_sentences_triple'] = all_pairs
+                evidence = instances[i]['predicted_sentences_triples']
 
             for sentence in evidence:
 
@@ -123,25 +199,6 @@ with StanfordOpenIE() as client:
                 potential_evidence_sentences.append("Nothing")
                 evidence.append(["Nothing", 0])
 
-            # this will create document retrieval and sentence retrieval based on NER
-            if INCLUDE_NER:
-                relevant_docs, entities = doc_retrieval.getRelevantDocs(claim, wiki_entities, "spaCy",
-                                                                        nlp)  # "spaCy", nlp)#
-                print(relevant_docs)
-                # print(entities)
-                relevant_sentences = sentence_retrieval.getRelevantSentences(relevant_docs, entities, wiki_split_docs_dir)
-                # print(relevant_sentences)
-
-                predicted_evidence = []
-                for sent in relevant_sentences:
-                    predicted_evidence.append((sent['id'], sent['line_num']))
-                    potential_evidence_sentences.append(sent['sentence'])
-                    evidence.append((sent['id'], sent['line_num']))
-
-                instances[i]['predicted_pages_ner'] = relevant_docs
-                instances[i]['predicted_sentences_ner'] = predicted_evidence
-                writer_n.write(instances[i])
-
             if RUN_RTE:
                 preds = run_rte(claim, potential_evidence_sentences, claim_num)
 
@@ -158,11 +215,6 @@ with StanfordOpenIE() as client:
 
                 saveFile.close()
             claim_num += 1
-
-            if INCLUDE_OIE:
-                relevant_docs, entities = doc_retrieval.get_docs_with_oie(claim, wiki_entities, client)
-                print(entities)
-                instances[i]['predicted_pages_oie'] = relevant_docs
 
             writer_c.write(instances[i])
             print("Claim number: " + str(i) + " of " + str(len(instances)))

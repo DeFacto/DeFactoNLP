@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.externals import joblib
 from proof_extraction_train import _extract_features
 from defacto.model_nl import ModelNL
+import unicodedata as ud
 
 wiki_split_docs_dir = "../wiki-pages-split"
 
@@ -15,18 +16,19 @@ document_results_file_oie = "data/dev_concatenation_oie.jsonl"  # file with tfid
 document_results_file = jsonlines.open(document_results_file)
 document_results_file_oie = jsonlines.open(document_results_file_oie)
 
-relevant_sent_file = "data/dev_concatenation_oie_sentence.jsonl"
+relevant_sent_file = "data/dev_concatenation_oie_sentenceasdsadsadsadasdsadas.jsonl"
 
 defacto_clf = joblib.load('defacto/defacto_models/rfc.mod')
 
 
-def get_file(doc):
+def get_file(_doc):
     try:
-        file = codecs.open(wiki_split_docs_dir + "/" + doc + ".json", "r", "latin-1")
+        _doc = ud.normalize('NFC', _doc)
+        file = codecs.open(wiki_split_docs_dir + "/" + _doc + ".json", "r", "latin-1")
         file = json.load(file)
         return file
-    except Exception as e:
-        print("Failed Loading" + str(doc))
+    except Exception as _e:
+        print("Failed Loading" + str(_doc) + str(_e))
         return ""
 
 
@@ -76,7 +78,6 @@ with jsonlines.open(relevant_sent_file, mode='w') as writer_c:
         flag = False
         try:
             defactoModel = None
-            # TODO:get sentence through documents for OIE!
             all_pairs = line['predicted_sentences']
             all_pairs = [tuple(l) for l in all_pairs]
             if 'predicted_pages_oie' in line:
