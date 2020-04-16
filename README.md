@@ -19,7 +19,7 @@ year={2018}
 
 # System Structure 
 
-![System Structure](https://github.com/DeFacto/DeFactoNLP/images/work_structure.png)
+![System Structure](https://github.com/DeFacto/DeFactoNLP/blob/master/images/work_structure.png)
 
 # Reproducing
 
