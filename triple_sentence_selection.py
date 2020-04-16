@@ -72,53 +72,55 @@ for line in document_results_file_oie:
 errors = 0
 correct = 0
 no_prediction = 0
-with jsonlines.open(relevant_sent_file, mode='w') as writer_c:
-    for line in claims_oie:
-        correct_sentences = set()
-        flag = False
-        try:
-            defactoModel = None
-            all_pairs = line['predicted_sentences']
-            all_pairs = [tuple(l) for l in all_pairs]
-            if 'predicted_pages_oie' in line:
-                documents = line['predicted_pages_oie']
-                for doc in documents:
-                    pairs = get_pairs_from_doc(doc)
-                    all_pairs.extend(pairs)
-            all_pairs = list(set(all_pairs))
-            for pair in all_pairs:
-                if defactoModel is None:
-                    defactoModel = ModelNL(claim=line['claim'])
-                sentence = get_sentence(pair[0], pair[1])
-                if sentence == "":
-                    continue
-                try:
-                    x = _extract_features(sentence, line['claim'], defactoModel.triples)
-                    x = np.asarray(x)
-                    x = x.reshape(1, -1)
-                    y = defacto_clf.predict(x)
-                    defacto_class = y[0]
-                except Exception as e:
-                    errors += 1
-                    print("Error: " + str(errors))
-                if defacto_class == 0:
-                    continue
-                else:
-                    correct_sentences.add(pair)
-        except Exception as e:
-            print("Error")
-            flag = True
-        correct += 1
-        print(correct)
-        if len(correct_sentences) > 0:
-            correct_sentences = list(correct_sentences)
-            line['predicted_sentences_triple'] = correct_sentences
-        else:
-            print("NO PREDICTION!!!!")
-            if flag:
-                no_prediction += 1
-            line['predicted_sentences_triple'] = all_pairs
-        writer_c.write(line)
-print(no_prediction)
-print(correct)
-print(no_prediction)
+
+if __name__ == "__main__":
+    with jsonlines.open(relevant_sent_file, mode='w') as writer_c:
+        for line in claims_oie:
+            correct_sentences = set()
+            flag = False
+            try:
+                defactoModel = None
+                all_pairs = line['predicted_sentences']
+                all_pairs = [tuple(l) for l in all_pairs]
+                if 'predicted_pages_oie' in line:
+                    documents = line['predicted_pages_oie']
+                    for doc in documents:
+                        pairs = get_pairs_from_doc(doc)
+                        all_pairs.extend(pairs)
+                all_pairs = list(set(all_pairs))
+                for pair in all_pairs:
+                    if defactoModel is None:
+                        defactoModel = ModelNL(claim=line['claim'])
+                    sentence = get_sentence(pair[0], pair[1])
+                    if sentence == "":
+                        continue
+                    try:
+                        x = _extract_features(sentence, line['claim'], defactoModel.triples)
+                        x = np.asarray(x)
+                        x = x.reshape(1, -1)
+                        y = defacto_clf.predict(x)
+                        defacto_class = y[0]
+                    except Exception as e:
+                        errors += 1
+                        print("Error: " + str(errors))
+                    if defacto_class == 0:
+                        continue
+                    else:
+                        correct_sentences.add(pair)
+            except Exception as e:
+                print("Error")
+                flag = True
+            correct += 1
+            print(correct)
+            if len(correct_sentences) > 0:
+                correct_sentences = list(correct_sentences)
+                line['predicted_sentences_triple'] = correct_sentences
+            else:
+                print("NO PREDICTION!!!!")
+                if flag:
+                    no_prediction += 1
+                line['predicted_sentences_triple'] = all_pairs
+            writer_c.write(line)
+    print(no_prediction)
+    print(correct)
+    print(no_prediction)
