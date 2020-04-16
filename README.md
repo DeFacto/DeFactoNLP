@@ -19,11 +19,34 @@ year={2018}
 
 # System Structure 
 
-![System Structure](https://github.com/DeFacto/DeFactoNLP/blob/master/images/work_structure.png)
+The system is based on three major tasks (Document Retrieval, Sentence Retrieval, Label Classification). Each task was performed using different techniques:
 
-# Reproducing
+* Document Retrieval
+  * TF-IDF 
+  * NER
+  * Triple-Based
+* Sentence Retrieval
+  * TF-IDF
+  * Triple-Based Model
+  * [Sentence-Transformers](https://github.com/UKPLab/sentence-transformers)
+* Label Classification
+  * RTE Model + Random Forest model
 
-To reproduce this work, an understanding of the files and scripts are needed.
+# Run
+
+You can run Document Retrieval and Sentence Retrieval by running the following script: [generate_rte_preds.py](/generate_rte_preds.py).
+
+The script contains the 6 boolean variables:
+* **INCLUDE_NER** --> if the input file contains ***NER** Predicted DOCUMENTS* and you want to include them as relevant documents
+* **INCLUDE_TRIPLE_BASED** --> if the input file contains ***Triple Based** Predicted DOCUMENTS* and you want to include them as relevant documents
+* **INCLUDE_SENTENCE_BERT** --> if the input file contains ***Triples Based** Predicted SENTENCES* and you want to include them as relevant sentences
+* **RUN_DOC_TRIPLE_BASED** --> to *Predict **Triple Based** Relevant DOCUMENTS* 
+* **RUN_SENT_TRIPLE_BASED** --> to *Predict **Triple Based** Relevant SENTENCES* 
+* **RUN_RTE** -> to run **Recognising Textual Entailment** to calculate the probabilities for every *Relevant Sentences*
+
+Changing this variables will allow to run every step as required, making possible to run every step in a seperate way, all at the same time or even include other Retrieval techniques using files with that information.
+
+To generate the final predictions, run [Label Classification](#Label Classification)
 
 ### Data
 
@@ -35,6 +58,8 @@ The Wikipedia corpus can be downloaded running the script [download-raw-wiki.sh]
 We also created a train subsample using the script [subsample_training_data.py](subsample_training_data.py).
 
 The files [subsample_train_relevant_docs.jsonl](/data/subsample_train_relevant_docs.jsonl), [shared_task_dev_public_relevant_docs.jsonl](/data/shared_task_dev_public_relevant_docs.jsonl) and [shared_task_test_relevant_docs.jsonl](/data/shared_task_test_relevant_docs.jsonl) contain the information from the TF-IDF part of Document Retrieval (*predicted_pages*) and Sentence Retrieval (*predicted_sentences*). 
+
+All the files have certain keyworks. OIE stands for Open Information Extraction (in Document Retrieval). SENTENCE was performed a Triple-Based method for Sentence Selection. Important to verify the first line of every file to know what Retrieval Method was made.
 
 ### TF-IDF (Document and Sentence Retrieval)
 
