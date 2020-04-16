@@ -46,7 +46,7 @@ The script contains the 6 boolean variables:
 
 Changing this variables will allow to run every step as required, making possible to run every step in a seperate way, all at the same time or even include other Retrieval techniques using files with that information.
 
-To generate the final predictions, run [Label Classification](#Label Classification)
+To generate the final predictions, run [Label Classification](#Label-Classification)
 
 ### Data
 
