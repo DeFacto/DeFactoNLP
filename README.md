@@ -39,7 +39,7 @@ You can run Document Retrieval and Sentence Retrieval by running the following s
 The script contains the 6 boolean variables:
 * **INCLUDE_NER** --> if the input file contains ***NER** Predicted DOCUMENTS* and you want to include them as relevant documents
 * **INCLUDE_TRIPLE_BASED** --> if the input file contains ***Triple Based** Predicted DOCUMENTS* and you want to include them as relevant documents
-* **INCLUDE_SENTENCE_BERT** --> if the input file contains ***Triples Based** Predicted SENTENCES* and you want to include them as relevant sentences
+* **INCLUDE_SENTENCE_BERT** --> if the input file contains ***Sentence-Transformers** Predicted SENTENCES* and you want to include them as relevant sentences
 * **RUN_DOC_TRIPLE_BASED** --> to *Predict **Triple Based** Relevant DOCUMENTS* 
 * **RUN_SENT_TRIPLE_BASED** --> to *Predict **Triple Based** Relevant SENTENCES* 
 * **RUN_RTE** -> to run **Recognising Textual Entailment** to calculate the probabilities for every *Relevant Sentences*
