@@ -1,7 +1,9 @@
-from defacto.SolrUtils import SolrUtils
-from defacto.core_util import get_topic_terms
+# from defacto.SolrUtils import SolrUtils
+# from defacto.core_util import get_topic_terms
 from defacto.rel_extract import TripleExtraction_ClausIE
-from defacto.wikipedia import WikiPediaUtils
+
+
+# from defacto.wikipedia import WikiPediaUtils
 
 
 class ModelNL(object):
@@ -22,11 +24,10 @@ class ModelNL(object):
             self.error_on_extract_triples = False
             self.error_message = ''
             self.__extract_triples()
-            #if len(self.triples) == 0:
+            # if len(self.triples) == 0:
             #    raise Exception('could not extract triples out of the claim!')
         except Exception as error:
             raise error
-
 
     def __extract_triples(self):
         try:
@@ -46,6 +47,8 @@ class ModelNL(object):
         except:
             raise
 
+
+'''
 
 if __name__ == '__main__':
 
@@ -76,3 +79,4 @@ if __name__ == '__main__':
 
     except Exception as e:
         print(e)
+'''
