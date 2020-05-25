@@ -22,6 +22,9 @@ def populate_train(gold_train, entailment_predictions_train):
     i = 1
     gold_train = jsonlines.open(gold_train)
     for instance in gold_train:
+        if i == 1661:
+            i += 1
+            continue
         y_train.append(labeltoint[instance['label']])
         entailment_results_file = entailment_predictions_train + "/claim_" + str(i) + ".json"
         entailment_results_file = codecs.open(entailment_results_file, "r", "utf-8").readlines()
@@ -37,7 +40,13 @@ def populate_train(gold_train, entailment_predictions_train):
         nei_min_conf_score = 1.0
         evidence_so_far = []
         for line in entailment_results_file:
-            line = json.loads(line)
+            try:
+                line = json.loads(line)
+            except Exception as e:
+                print(line)
+                print(e)
+                print(i)
+                print(instance)
             evi = [line['premise_source_doc_id'], line['premise_source_doc_line_num']]
             if evi in evidence_so_far:
                 continue
@@ -66,9 +75,18 @@ def populate_train(gold_train, entailment_predictions_train):
             if nei_min_conf_score > line["label_probs"][2]:
                 nei_min_conf_score = line["label_probs"][2]
 
-        features = [nei_max_conf_score, support_max_conf_score, refute_max_conf_score, nei_min_conf_score,
-                    nei_count, nei_confidence, support_count, support_confidence, refute_count, refute_confidence]
-
+        total_count = nei_count + refute_count + support_count
+        features = [nei_max_conf_score,
+                    support_max_conf_score,
+                    refute_max_conf_score,
+                    nei_min_conf_score,
+                    nei_count,  # / total_count,
+                    nei_confidence,
+                    support_count,  # / total_count,
+                    support_confidence,
+                    refute_count,  # / total_count,
+                    refute_confidence,
+                    ]
         if nei_count != 0:
             features.append(float(nei_confidence) / float(nei_count))
         else:
@@ -150,9 +168,18 @@ def predict_test(predictions_test, entailment_predictions_test, new_predictions_
             # print(support_evidence)
             # print(support_count)
 
-            features = [nei_max_conf_score, support_max_conf_score, refute_max_conf_score, nei_min_conf_score,
-                        nei_count, nei_confidence, support_count, support_confidence, refute_count, refute_confidence]
-
+            total_count = nei_count + refute_count + support_count
+            features = [nei_max_conf_score,
+                        support_max_conf_score,
+                        refute_max_conf_score,
+                        nei_min_conf_score,
+                        nei_count,  # / total_count,
+                        nei_confidence,
+                        support_count,  # / total_count,
+                        support_confidence,
+                        refute_count,  # / total_count,
+                        refute_confidence,
+                        ]
             if nei_count != 0:
                 features.append(float(nei_confidence) / float(nei_count))
                 nei_scores, nei_evidence = zip(*sorted(zip(nei_scores, nei_evidence), reverse=True))
@@ -172,7 +199,16 @@ def predict_test(predictions_test, entailment_predictions_test, new_predictions_
             features = np.asarray(features)
             features = features.reshape(1, features.shape[0])
             # print(features)
-            new_pred['predicted_label'] = intolabel[clf.predict(features)[0]]
+            result_label = intolabel[clf.predict(features)[0]]
+
+            # if support_count > 0:
+            #     result_label = "SUPPORTS"
+            # elif refute_count > 0:
+            #     result_label = "REFUTES"
+            # else:
+            #     result_label = "NOT ENOUGH INFO"
+
+            new_pred['predicted_label'] = result_label
             if new_pred['predicted_label'] == "SUPPORTS":
                 if support_count == 0:
                     new_pred['predicted_label'] = "NOT ENOUGH INFO"
@@ -191,16 +227,17 @@ def predict_test(predictions_test, entailment_predictions_test, new_predictions_
 
 predictions_train = "predictions/predictions_train.jsonl"
 
-gold_train = "data/subsample_train_concatenation_oie_sentence_final.jsonl"
-entailment_predictions_train = "rte/entailment_predictions_train_concatenate_oie_triple"
+# subsample_train_concatenation_oie_sentence_final #entailment_predictions_train_concatenat_oie_triple
+gold_train = "data/subsample_train_pointwise_baby_final.jsonl"
+entailment_predictions_train = "rte/entailment_predictions_train_90_transformers"
 
-predictions_test = "data/dev_sentence_selection_final.jsonl"
+predictions_test = "data/dev_test_pointwise_bert_final.jsonl"
 entailment_predictions_test = "rte/entailment_predictions"
-new_predictions_file = "predictions/new_dev_bert_test.jsonl"
+new_predictions_file = "predictions/new_bert_pointwise_augmented.jsonl"
 
 x_train, y_train = populate_train(gold_train, entailment_predictions_train)
-# x_test = x_train[7000:]
-# y_test = y_train[7000:]
+x_test = x_train[7000:]
+y_test = y_train[7000:]
 
 x_train = x_train[:2500]
 y_train = y_train[:2500]

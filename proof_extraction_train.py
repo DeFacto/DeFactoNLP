@@ -536,7 +536,7 @@ def export_defacto_models():
                     break
                 i += 1
                 f = Path(ROOT_PATH + DEFACTO_OUTPUT_FOLDER + 'defacto_' + str(obj["id"]) + '.pkl')
-                if not f.exists() and obj["label"] != 'NOT ENOUGH INFO':
+                if obj["label"] != 'NOT ENOUGH INFO':
                     job_args.append((obj["id"], obj["claim"], obj["label"], obj["evidence"][0]))
 
         print('export_defacto_models: job args created: ' + str(len(job_args)))
@@ -550,6 +550,7 @@ def export_defacto_models():
             print(' -- ATTENTION: no job created!')
 
     except Exception as e:
+        print("")
         print(e)
 
 
@@ -626,8 +627,8 @@ if __name__ == '__main__':
         print(args)
 
         DEFACTO_OUTPUT_FOLDER = 'defacto/defacto_models/'
-        args = ['dev', '2']
-        PATH_WIKIPAGES = '/home/guest/git/DeFactoNLP/data/wiki-pages-split/'
+        args = ['dev', '0', '1', '2']
+        PATH_WIKIPAGES = '/home/guest/git/DeFactoNLP/../wiki-pages-coref/'
         TRAIN_FILE = "/home/guest/git/DeFactoNLP/data/subsample_train_relevant_docs.jsonl"
 
         if '0' in args:

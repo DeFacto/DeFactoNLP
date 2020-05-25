@@ -9,13 +9,16 @@ import logging
 import codecs
 import json
 import jsonlines
+import unicodedata as ud
+from random import shuffle
 import tqdm
 
-wiki_split_docs_dir = "../wiki-pages-split"
+wiki_split_docs_dir = "../wiki-pages-coref"
 
 
-def get_sentence(doc, line_num):
+def get_sentence(doc, line_num, more_false=False):
     try:
+        doc = ud.normalize('NFC', doc)
         file = codecs.open(wiki_split_docs_dir + "/" + doc + ".json", "r", "utf-8")
     except:
         print("Failed Loading: " + str(doc))
@@ -42,9 +45,14 @@ def get_sentence(doc, line_num):
         print("Sanity check failed!!!!!!!!!!!!!!!!!!!!!!")
 
     if len(_non_related_sentences):
-        _non_related_sentences = list(_non_related_sentences)[0]
+        if more_false:
+            _non_related_sentences = list(_non_related_sentences)[0:min(len(_non_related_sentences), 4)]
+        else:
+            _non_related_sentences = list(_non_related_sentences)[0]
     else:
         _non_related_sentences = "ERROR404"
+        if more_false:
+            _non_related_sentences = ["ERROR404"]
     #print(_non_related_sentences)
     #print(len(_non_related_sentences))
     return sentence, _non_related_sentences
@@ -52,7 +60,7 @@ def get_sentence(doc, line_num):
 
 def get_labels():
     # contradiction -> REFUTES # entailment -> SUPPORTS # neutral -> Not Enough Information
-    return {"refutes": 0, "supports": 0, "neutral": 2}
+    return {"refutes": 0, "supports": 1, "neutral": 2}
 
 
 def get_num_labels():
@@ -68,146 +76,149 @@ logging.basicConfig(format='%(asctime)s - %(message)s',
                     level=logging.INFO,
                     handlers=[LoggingHandler()])
 
-train_file = "data/subsample_train.jsonl"
-train_file = jsonlines.open(train_file)
-train_set = []
-for lines in train_file:
-    lines['claim'] = lines['claim'].replace("-LRB-", " ( ")
-    lines['claim'] = lines['claim'].replace("-RRB-", " ) ")
-    train_set.append(lines)
+if __name__ == '__main__':
+    train_file = "data/train.jsonl"
+    train_file = jsonlines.open(train_file)
+    train_set = []
+    for lines in train_file:
+        lines['claim'] = lines['claim'].replace("-LRB-", " ( ")
+        lines['claim'] = lines['claim'].replace("-RRB-", " ) ")
+        train_set.append(lines)
 
-dev_file = "data/dev.jsonl"
-dev_file = jsonlines.open(dev_file)
-dev_set = []
-for lines in dev_file:
-    lines['claim'] = lines['claim'].replace("-LRB-", " ( ")
-    lines['claim'] = lines['claim'].replace("-RRB-", " ) ")
-    dev_set.append(lines)
+    dev_file = "data/dev.jsonl"
+    dev_file = jsonlines.open(dev_file)
+    dev_set = []
+    for lines in dev_file:
+        lines['claim'] = lines['claim'].replace("-LRB-", " ( ")
+        lines['claim'] = lines['claim'].replace("-RRB-", " ) ")
+        dev_set.append(lines)
 
-model_name = 'bert-base-nli-mean-tokens'
-batch_size = 16
-num_epochs = 1
-train_num_labels = get_num_labels()
-model_save_path = 'output/subsample_train-' \
-                  + model_name + '-' + datetime.now().strftime("%Y-%m ""-%d_%H-%M-%S")
-# sts_reader = STSDataReader('datasets/stsbenchmark', normalize_scores=True)
+    model_name = 'bert-large-nli-mean-tokens'
+    batch_size = 16
+    num_epochs = 1
+    train_num_labels = get_num_labels()
+    model_save_path = 'output/subsample_train-' \
+                      + model_name + '-' + datetime.now().strftime("%Y-%m ""-%d_%H-%M-%S")
+    # sts_reader = STSDataReader('datasets/stsbenchmark', normalize_scores=True)
 
-# Load a pre-trained sentence transformer model
-model = SentenceTransformer(model_name)
+    # Load a pre-trained sentence transformer model
+    model = SentenceTransformer(model_name)
 
-STOP = -10
+    STOP = 30000
+    shuffle(train_set)
 
-logging.info("Reading Subsample of Train Dataset")
-examples_train = []
-neutral = 0
-non_neutral = 0
-for example in train_set:
-    sentence_a = example['claim']
-    evidences = example['evidence']
-    label = example['label']
+    logging.info("Reading Subsample of Train Dataset")
+    examples_train = []
+    neutral = 0
+    non_neutral = 0
+    for example in train_set:
+        sentence_a = example['claim']
+        evidences = example['evidence']
+        label = example['label']
 
-    if label == "NOT ENOUGH INFO":
-        continue
+        if label == "NOT ENOUGH INFO":
+            continue
 
-    for evidence in evidences:
-        pairs = set()
-        if len(evidence) > 1:  # needs more than 1 doc to be verifiable
-            for e in evidence:
-                pairs.add((str(e[2]), str(e[3])))
+        for evidence in evidences:
+            pairs = set()
+            if len(evidence) > 1:  # needs more than 1 doc to be verifiable
+                for e in evidence:
+                    pairs.add((str(e[2]), str(e[3])))
+            else:
+                pairs.add((str(evidence[0][2]), str(evidence[0][3])))
+
+            all_non_related_sentences = set()
+            for pair in pairs:
+                sentence_b, non_related_sentences = get_sentence(pair[0], int(pair[1]))
+                if sentence_b == "-1":
+                    # page failed to load
+                    continue
+                #all_non_related_sentences |= non_related_sentences
+                examples_train.append(InputExample(example['id'], texts=[sentence_a, sentence_b], label=map_label(label)))
+                #print(sentence_b)
+                #print(non_related_sentences)
+                if non_related_sentences != "ERROR404" and STOP % 2:
+                    print(STOP)
+                    examples_train.append(InputExample(example['id'],
+                                                   texts=[sentence_a, non_related_sentences],
+                                                   label=map_label("neutral")))
+                    neutral += 1
+                non_neutral += 1
+            all_non_related_sentences = list(all_non_related_sentences)
+            for non_related_sentence in all_non_related_sentences:
+
+                #print(non_related_sentence)
+                if non_related_sentence != "" and False:
+                    print("UPSI")
+                    examples_train.append(InputExample(example['id'],
+                                                   texts=[sentence_a, non_related_sentence],
+                                                   label=map_label("neutral")))
+        if STOP == 0:
+            break
         else:
-            pairs.add((str(evidence[0][2]), str(evidence[0][3])))
+            STOP -= 1
 
-        all_non_related_sentences = set()
-        for pair in pairs:
-            sentence_b, non_related_sentences = get_sentence(pair[0], int(pair[1]))
-            if sentence_b == "-1":
-                # page failed to load
-                continue
-            #all_non_related_sentences |= non_related_sentences
-            examples_train.append(InputExample(example['id'], texts=[sentence_a, sentence_b], label=map_label(label)))
-            print(sentence_b)
-            print(non_related_sentences)
-            if non_related_sentences != "ERROR404":
-                examples_train.append(InputExample(example['id'],
-                                               texts=[sentence_a, non_related_sentences],
-                                               label=map_label("neutral")))
-                neutral += 1
-            non_neutral += 1
-        all_non_related_sentences = list(all_non_related_sentences)
-        for non_related_sentence in all_non_related_sentences:
+    print(non_neutral)
+    print(neutral)
+    logging.info("Train Data Loaded")
+    train_data = SentencesDataset(examples_train, model)
+    train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
+    train_loss = losses.SoftmaxLoss(model=model,
+                                    sentence_embedding_dimension=model.get_sentence_embedding_dimension(),
+                                    num_labels=train_num_labels)
 
-            #print(non_related_sentence)
-            if non_related_sentence != "" and False:
-                print("UPSI")
-                examples_train.append(InputExample(example['id'],
-                                               texts=[sentence_a, non_related_sentence],
-                                               label=map_label("neutral")))
-    if STOP == 0:
-        break
-    else:
-        STOP -= 1
+    logging.info("Reading Dev Dataset")
+    examples_dev = []
+    STOP = 500
+    for example in dev_set:
+        sentence_a = example['claim']
+        evidences = example['evidence']
+        label = example['label']
+        if label == "NOT ENOUGH INFO":
+            continue
+        for evidence in evidences:
+            pairs = set()
+            if len(evidence) > 1:
+                for e in evidence:
+                    pairs.add((str(e[2]), str(e[3])))
+            else:
+                pairs.add((str(evidence[0][2]), str(evidence[0][3])))
 
-print(non_neutral)
-print(neutral)
-logging.info("Train Data Loaded")
-train_data = SentencesDataset(examples_train, model)
-train_dataloader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
-train_loss = losses.SoftmaxLoss(model=model,
-                                sentence_embedding_dimension=model.get_sentence_embedding_dimension(),
-                                num_labels=train_num_labels)
+            all_non_related_sentences = set()
+            for pair in pairs:
+                sentence_b, non_related_sentences = get_sentence(pair[0], int(pair[1]))
+                if sentence_b == "-1":
+                    # page failed to load
+                    continue
+                #all_non_related_sentences |= non_related_sentences
+                examples_dev.append(InputExample(example['id'], texts=[sentence_a, sentence_b], label=1))
 
-logging.info("Reading Dev Dataset")
-examples_dev = []
-STOP = 500
-for example in dev_set:
-    sentence_a = example['claim']
-    evidences = example['evidence']
-    label = example['label']
-    if label == "NOT ENOUGH INFO":
-        continue
-    for evidence in evidences:
-        pairs = set()
-        if len(evidence) > 1:
-            for e in evidence:
-                pairs.add((str(e[2]), str(e[3])))
+            #for non_related_sentence in all_non_related_sentences:
+                if non_related_sentences != "ERROR404":
+                    examples_dev.append(InputExample(example['id'],
+                                                 texts=[sentence_a, non_related_sentences],
+                                                 label=0))
+        if STOP == 0:
+            break
         else:
-            pairs.add((str(evidence[0][2]), str(evidence[0][3])))
+            STOP -= 1
 
-        all_non_related_sentences = set()
-        for pair in pairs:
-            sentence_b, non_related_sentences = get_sentence(pair[0], int(pair[1]))
-            if sentence_b == "-1":
-                # page failed to load
-                continue
-            #all_non_related_sentences |= non_related_sentences
-            examples_dev.append(InputExample(example['id'], texts=[sentence_a, sentence_b], label=1))
+    logging.info("Dev Data Loaded")
+    dev_data = SentencesDataset(examples=examples_dev, model=model)
+    dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
+    evaluator = EmbeddingSimilarityEvaluator(dev_dataloader)
 
-        #for non_related_sentence in all_non_related_sentences:
-            if non_related_sentences != "ERROR404":
-                examples_dev.append(InputExample(example['id'],
-                                             texts=[sentence_a, non_related_sentences],
-                                             label=0))
-    if STOP == 0:
-        break
-    else:
-        STOP -= 1
+    # Configure the training
+    num_epochs = 1
 
-logging.info("Dev Data Loaded")
-dev_data = SentencesDataset(examples=examples_dev, model=model)
-dev_dataloader = DataLoader(dev_data, shuffle=False, batch_size=batch_size)
-evaluator = EmbeddingSimilarityEvaluator(dev_dataloader)
+    warmup_steps = math.ceil(len(train_dataloader) * num_epochs / batch_size * 0.10)  # 10% of train data for warm-up
+    logging.info("Warmup-steps: {}".format(warmup_steps))
 
-# Configure the training
-num_epochs = 3
-
-warmup_steps = math.ceil(len(train_dataloader) * num_epochs / batch_size * 0.1)  # 1 0% of train data for warm-up
-logging.info("Warmup-steps: {}".format(warmup_steps))
-
-# Train the model
-model.fit(train_objectives=[(train_dataloader, train_loss)],
-          evaluator=evaluator,
-          epochs=num_epochs,
-          evaluation_steps=1000,
-          warmup_steps=warmup_steps,
-          output_path=model_save_path
-          )
+    # Train the model
+    model.fit(train_objectives=[(train_dataloader, train_loss)],
+              evaluator=evaluator,
+              epochs=num_epochs,
+              evaluation_steps=1000,
+              warmup_steps=warmup_steps,
+              output_path=model_save_path
+              )

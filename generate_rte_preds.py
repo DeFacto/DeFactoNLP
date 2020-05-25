@@ -12,48 +12,50 @@ import gensim
 import numpy as np
 
 from sklearn.externals import joblib
-from defacto.model_nl import ModelNL
-from proof_extraction_train import _extract_features
-from triple_sentence_selection import get_sentence, get_pairs_from_doc
+
+# from defacto.model_nl import ModelNL
+# from proof_extraction_train import _extract_features
+# from triple_sentence_selection import get_sentence, get_pairs_from_doc
 
 defacto_clf = joblib.load('defacto/defacto_models/rfc.mod')
 
-relevant_sentences_file = "data/dev_relevant_docs.jsonl"
+relevant_sentences_file = "data/dev_test_pointwise_bert.jsonl"
 ner_file = "data/dev_concatenation.jsonl"
-concatenate_file = "data/dev_concatenation_oie.jsonl"
+concatenate_file = "data/dev_test_pointwise_bert_final.jsonl"
 
 instances = []
 zero_results = 0
 
 INCLUDE_NER = False
 INCLUDE_TRIPLE_BASED = False
-INCLUDE_SENTENCE_BERT = False
+INCLUDE_SENTENCE_BERT = True
 RUN_DOC_TRIPLE_BASED = False
 RUN_SENT_TRIPLE_BASED = False
-RUN_RTE = False
-
+RUN_RTE = True
 
 relevant_sentences_file = jsonlines.open(relevant_sentences_file)
 if RUN_RTE:
     from allennlp.models.archival import load_archive
     from allennlp.predictors import Predictor
+
     model = "rte/fever_output/model.tar.gz"
     model = load_archive(model)
     predictor = Predictor.from_archive(model)
 
 wiki_dir = "data/wiki-pages/wiki-pages"
-wiki_split_docs_dir = "../wiki-pages-split"
+wiki_split_docs_dir = "../wiki-pages-coref"
 
 claim_num = 1
 
 wiki_entities = os.listdir(wiki_split_docs_dir)
 # sum = 0
 for i in range(len(wiki_entities)):
-    wiki_entities[i] = wiki_entities[i].replace("-SLH-", "/")
+    wiki_entities[i] = wiki_entities[i].replace("-SLH-", " / ")
     wiki_entities[i] = wiki_entities[i].replace("_", " ")
     wiki_entities[i] = wiki_entities[i][:-5]
-    wiki_entities[i] = wiki_entities[i].replace("-LRB-", "(")
-    wiki_entities[i] = wiki_entities[i].replace("-RRB-", ")")
+    wiki_entities[i] = wiki_entities[i].replace("-LRB-", " ( ")
+    wiki_entities[i] = wiki_entities[i].replace("-RRB-", " ) ")
+    wiki_entities[i] = wiki_entities[i].replace("-COLON-", " : ")
 #     tokens_sentence = gensim.utils.simple_preprocess(wiki_entities[i])
 #     num = len(tokens_sentence)
 #     #print(num)
@@ -61,7 +63,7 @@ for i in range(len(wiki_entities)):
 # print(sum/len(wiki_entities))
 # exit(0)
 
-    # wiki_entities[i] = ' '.join(map(str, tokens_sentence))
+# wiki_entities[i] = ' '.join(map(str, tokens_sentence))
 
 print("Wiki entities successfully parsed")
 
@@ -84,7 +86,8 @@ def run_rte(claim, evidence, claim_num):
     preds = predictor.predict_batch_json(test_set)
     return preds
 
-
+error_count = 5
+avg_evidence = 0
 with StanfordOpenIE() as client:
     with jsonlines.open(concatenate_file, mode='w') as writer_c, \
             jsonlines.open(ner_file, mode='w') as writer_n:
@@ -99,11 +102,13 @@ with StanfordOpenIE() as client:
                 else:
                     evidence = instances[i]['predicted_sentences']
             elif INCLUDE_SENTENCE_BERT:
-                if 'predicted_sentences_bert' in instances[i]:
-                    evidence = instances[i]['predicted_sentences_bert']
-                    print("hello" + str(evidence))
+                if 'predicted_sentences_bert_10' in instances[i]:
+                    evidence = instances[i]['predicted_sentences_bert_10']
+                    # evidence += instances[i]['predicted_sentences']
+                    # print(evidence)
                 else:
                     evidence = instances[i]['predicted_sentences']
+                    print("UPS... No Sentence BERT...")
             else:
                 evidence = instances[i]['predicted_sentences']
             potential_evidence_sentences = []
@@ -126,8 +131,34 @@ with StanfordOpenIE() as client:
 
             # This will find every document using Triple Based approach
             if RUN_DOC_TRIPLE_BASED:
-                relevant_docs, entities = doc_retrieval.get_docs_with_oie(claim, wiki_entities, client)
-                print(entities)
+                docs_wiki, docs_google = doc_retrieval.find_docs_using_google(claim, wiki_entities, client)
+                # relevant_docs, entities = doc_retrieval.get_docs_with_oie(claim, wiki_entities, client)
+                instances[i]['predicted_pages_google'] = docs_wiki
+                instances[i]['predicted_pages_wiki'] = docs_google
+                relevant_docs = docs_wiki
+                relevant_docs += docs_google
+
+                if len(docs_google) == 0:
+                    print("Guess nothing was returned...")
+                    print("Guess nothing was returned...")
+                    print("Guess nothing was returned...")
+                    print("Guess nothing was returned...")
+                    print("Guess nothing was returned...")
+                    error_count -= 0
+                    if error_count == 0:
+                        exit(0)
+
+                if len(docs_wiki) == 0:
+                    print("Ups... Something went wrong")
+                    print("Ups... Something went wrong")
+                    print("Ups... Something went wrong")
+                    print("Ups... Something went wrong")
+                    print("Ups... Something went wrong")
+                    error_count -= 0
+                    if error_count == 0:
+                        exit(0)
+
+                print(relevant_docs)
                 instances[i]['predicted_pages_oie'] = relevant_docs
 
             if RUN_SENT_TRIPLE_BASED:
@@ -192,6 +223,7 @@ with StanfordOpenIE() as client:
 
                 potential_evidence_sentences.append(lines[sentence[1]])
 
+            avg_evidence += len(evidence)
             # Just adding a check
             # This is needed in case nothing was predicted
             if len(potential_evidence_sentences) == 0:
@@ -219,5 +251,5 @@ with StanfordOpenIE() as client:
             writer_c.write(instances[i])
             print("Claim number: " + str(i) + " of " + str(len(instances)))
 
-
 print("Number of Zero Sentences Found: " + str(zero_results))
+print("Average Sentences: " + str(avg_evidence/len(instances)))

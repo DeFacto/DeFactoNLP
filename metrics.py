@@ -12,15 +12,15 @@ train_predictions_file = []
 if len(sys.argv) - 1 == 1:
     type_file = sys.argv[1]
     if type_file == 'train':
-        train_file = "data/subsample_train.jsonl"
+        train_file = "data/subsample_train_test_baby.jsonl"
         train_relevant_file = "data/subsample_train_relevant_docs.jsonl"
-        train_concatenate_file = "data/subsample_train_concatenation.jsonl"
+        train_concatenate_file = "data/subsample_train_transformers_baby.jsonl"
         train_predictions_file = "predictions/predictions_train.jsonl"
-    else:  # type_file == 'dev':
-        train_file = "data/dev.jsonl"
-        train_relevant_file = "data/dev_relevant_docs.jsonl"
-        train_concatenate_file = "data/dev_sentence_selection.jsonl"
-        train_predictions_file = "predictions/new_dev_bert_test.jsonl"
+    else:  # type_file == 'dev': dev_test_bert_tuned_with_doc_augmented
+        train_file = "data/dev.jsonl"  # dev_only_corr # dev #dev_test_pointwise_bert #dev_test_bert_tuned_with_doc
+        train_relevant_file = "data/dev_relevant_docs.jsonl"  # dev_test_roberta_nli_with_doc
+        train_concatenate_file = "data/dev_coref_pointwise.jsonl"  # dev_only_corr_docs # dev_test_final_baby_2
+        train_predictions_file = "predictions/new_bert_pointwise_augmented.jsonl"
 else:
     print("Needs to have one argument. Choose:")
     print("train")
@@ -56,7 +56,7 @@ for lines in train_concatenate_file:
 for lines in train_predictions_file:
     train_prediction.append(lines)
 
-for claim in train_set:
+for claim in train_set[0:len(train_concatenate)]:
     _claim = Claim(claim['id'], claim['claim'], claim['verifiable'])
     _claim.add_gold_evidences(claim['evidence'])
     _claim.add_gold_line(claim)
@@ -65,46 +65,50 @@ for claim in train_set:
     # print(_claim.get_gold_documents())
     # print(len(_claim.gold_evidence))
 
-for claim in train_relevant:
+# for claim in train_relevant[0:500]:
+    # _id = claim['id']
+    # _claim = Claim.find_by_id(_id)[0]
+    # no search is needed... no information on gold about retrieval
+    # if not _claim.verifiable:
+    #     continue
+
+    # _claim.add_predicted_docs(claim['predicted_pages'])
+    # _claim.add_predicted_sentences(claim['predicted_sentences'])
+    # _claim.add_predicted_sentences_bert(claim['predicted_sentences'])
+
+avg_docs_per_claim = 0
+count = 0
+for claim in train_concatenate[0:len(train_concatenate)]:
     _id = claim['id']
     _claim = Claim.find_by_id(_id)[0]
-    # no search is needed... no information on gold about retrieval
+    _claim.predicted_line = claim
     if not _claim.verifiable:
         continue
-
     _claim.add_predicted_docs(claim['predicted_pages'])
     _claim.add_predicted_sentences(claim['predicted_sentences'])
-    #_claim.add_predicted_sentences_bert(claim['predicted_sentences'])
-
-
-for claim in train_concatenate:
-    _id = claim['id']
-    _claim = Claim.find_by_id(_id)[0]
-
-    if not _claim.verifiable:
-        continue
-
     if "predicted_pages_ner" in claim:
         _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
     if "predicted_sentences_ner" in claim:
-        print("")
         _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
 
-    if "predicted_sentences_bert" in claim:
-        _claim.add_predicted_sentences_bert(claim['predicted_sentences_bert'])
+    if "predicted_sentences_bert_5" in claim:
+        _claim.add_predicted_sentences_bert(claim['predicted_sentences_bert_10'])
     else:
         if "predicted_sentences_triple" in claim:
-            _claim.add_predicted_sentences_bert(claim['predicted_sentences_triple'])
+            _claim.add_predicted_sentences_bert(claim['predicted_sentences_triple_all'])
         else:
             _claim.add_predicted_sentences_bert(claim['predicted_sentences'])
     # _claim.add_predicted_docs_ner(claim['predicted_pages_ner'])
     # _claim.add_predicted_sentences_ner(claim['predicted_sentences_ner'])
     if "predicted_pages_oie" in claim:
-        _claim.add_predicted_docs_oie(claim['predicted_pages_oie'])
+        _claim.add_predicted_docs_oie(list(set(claim['predicted_pages_oie'])))
+        avg_docs_per_claim += len(list(set(claim['predicted_pages_wiki'])))
+        count += 1
+
     # if not _claim.check_evidence_found_doc(_type="all"):
     #     print(str(_claim.get_gold_documents()) + " -- " + str(_claim.get_predicted_documents(_type="all")))
-
-
+print(avg_docs_per_claim/count)
+count = 0
 results = Claim.document_retrieval_stats(claims, _type="tfidf")
 
 print("\n########################")
@@ -152,7 +156,7 @@ print("\nIF DOCUMENT WAS FOUND CORRECTLY:")
 print("Precision (Sentences Retrieved): \t" + str(results[2]))
 print("Recall (Relevant Sentences): \t\t" + str(results[3]))
 
-results = Claim.evidence_extraction_stats(claims, _type="ner")
+# results = Claim.evidence_extraction_stats(claims, _type="ner")
 
 print("\n###############################")
 print("# Possible Sentences Only NER #")
@@ -211,7 +215,7 @@ for claim in train_prediction:
     _id = claim['id']
     _claim = Claim.find_by_id(_id)[0]
 
-    if _claim.check_evidence_found_doc(_type="all"):
+    if _claim.check_evidence_found_doc(_type="bert"):
         claims_if_doc_found.append(_claim.line)
         predictions_if_doc_found.append(claim)
 
