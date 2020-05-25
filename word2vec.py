@@ -6,6 +6,7 @@ import sys
 from scipy import spatial
 import spacy
 import numpy as np
+from gensim.parsing.preprocessing import remove_stopwords
 
 fname = "word2vec.model"
 
@@ -24,7 +25,7 @@ else:
     print("Set Default Value: " + str(max_counter))
 
 # full text and processed in ['text'] tag
-wiki_folder = "data/wiki-pages-split"
+wiki_folder = "../wiki-pages-split"
 files = os.listdir(wiki_folder)
 shuffle(files)
 
